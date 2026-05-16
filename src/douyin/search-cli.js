@@ -19,19 +19,19 @@ function parseArgs(args) {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === "--keyword") {
+    if (arg === "--keyword" || arg === "-k") {
       result.keyword = args[i + 1] || "";
       i++;
-    } else if (arg === "--sort") {
+    } else if (arg === "--sort" || arg === "-s") {
       result.sort = Number(args[i + 1]) || 0;
       i++;
-    } else if (arg === "--time") {
+    } else if (arg === "--time" || arg === "-t") {
       result.time = Number(args[i + 1]) || 0;
       i++;
-    } else if (arg === "--limit") {
+    } else if (arg === "--limit" || arg === "-l") {
       result.limit = Number(args[i + 1]) || 10;
       i++;
-    } else if (arg === "--output") {
+    } else if (arg === "--output" || arg === "-o") {
       result.output = args[i + 1] || "json";
       i++;
     } else if (arg === "--help" || arg === "-h") {
@@ -53,7 +53,7 @@ function printHelp() {
   --keyword \t<关键词> \t搜索关键词
   --sort \t<排序> \t排序依据, 0: 综合排序(默认), 1: 最多点赞, 2: 最新发布
   --time \t<时间> \t发布时间, 0: 全部(默认), 1: 一天内, 7: 七天内, 180: 半年内
-  --limit \t<数量> \t搜索数量 (默认 10, 最大 60)
+  --limit \t<数量> \t搜索数量 (默认 10, 最大 200)
   --output \t<格式> \t输出格式, json, markdown (默认 json)
   --help \t显示帮助信息
 
@@ -119,7 +119,7 @@ async function main() {
       time,
       limit,
     );
-    if (status.errcode !== 0) {
+    if (!status || status.errcode !== 0) {
       throw new Error(
         `搜索任务创建失败时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
       );

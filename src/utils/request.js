@@ -1,7 +1,9 @@
 const https = require("https");
 const querystring = require("querystring");
 const constants = require("../config/constants");
+const { withRetry } = require("../utils/retry");
 const { ApiError, NetworkError, TimeoutError, AuthError } = require("./errors");
+const utils = require("../utils/utils");
 
 async function request(options, data = null) {
   return new Promise((resolve, reject) => {
@@ -29,7 +31,11 @@ async function request(options, data = null) {
               reject(new NetworkError(`响应解析失败: ${parseError.message}`));
             }
           } else if (res.statusCode === 401 || res.statusCode === 403) {
-            reject(new AuthError("GUAIKEI_API_TOKEN 无效, 请检查环境变量"));
+            reject(
+              new AuthError(
+                "GUAIKEI_API_TOKEN 无效, 请检查环境变量 或 联系微信: 13395823479 获取解决方案",
+              ),
+            );
           } else {
             reject(
               new ApiError(
@@ -107,4 +113,34 @@ async function getJson(path, params) {
   return await request(options);
 }
 
-module.exports = { getJson, postJson };
+/**
+ * 通用 API 请求方法
+ * @param {string} method - HTTP 方法 (GET/POST)
+ * @param {string} path - 请求路径
+ * @param {object} params - URL 参数
+ * @param {object} [data] - 请求体数据 (仅 POST)
+ * @param {number} maxAttempts - 最大重试次数
+ * @param {string} actionName - 操作名称（用于日志）
+ * @returns {Promise<object>} API 响应
+ */
+async function requestApi(method, path, params, data, maxAttempts, actionName) {
+  return await withRetry(
+    async () => {
+      let response;
+      if (method === "POST") {
+        response = await postJson(path, params, data);
+      } else {
+        response = await getJson(path, params);
+      }
+      return response;
+    },
+    maxAttempts,
+    (attempt, err) => {
+      utils.printError(
+        `【${actionName}重试】 ${attempt + 1}/${maxAttempts} 次 - ${err.message}`,
+      );
+    },
+  );
+}
+
+module.exports = { getJson, postJson, requestApi };

@@ -44,7 +44,7 @@ function cleanKeyword(keyword) {
  * 格式化并验证搜索选项
  * @param {number} sort - 排序依据 (0:综合, 1:最多点赞, 2:最新发布)
  * @param {number} time - 时间范围 (0:全部, 1:一天内, 7:七天内, 180:半年内)
- * @param {number} limit - 搜索数量 (1-60)
+ * @param {number} limit - 搜索数量 (1-200)
  * @param {string} output - 输出格式 ('json' | 'markdown')
  * @returns {[number, number, number, string]} 格式化后的选项数组
  */
@@ -61,8 +61,8 @@ function optionFormat(sort, time, limit, output) {
     utils.printError(`发布时间 ${time} 无效, 请使用 0, 1, 7, 180。 默认值为 0`);
     time = 0;
   }
-  if (limit < 1 || limit > 60) {
-    utils.printError(`搜索数量 ${limit} 无效, 请使用 1-60。 默认值为 10`);
+  if (limit < 1 || limit > 200) {
+    utils.printError(`搜索数量 ${limit} 无效, 请使用 1-200。 默认值为 10`);
     limit = 10;
   }
   if (output !== "json" && output !== "markdown") {

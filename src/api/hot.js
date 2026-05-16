@@ -7,6 +7,12 @@ const { getJson } = require("../utils/request");
 const { withRetry } = require("../utils/retry");
 const utils = require("../utils/utils");
 
+/**
+ * 获取抖音热门榜结果
+ * @param {string} token - 技能令牌
+ * @returns {Promise<Array>} 热门榜结果数组
+ * @throws {Error} API调用失败时抛出错误
+ */
 async function getHotTask(token) {
   return await withRetry(
     async () => {

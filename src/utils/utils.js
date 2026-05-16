@@ -9,7 +9,7 @@
 function printBanner() {
   console.log("╔════════════════════════════════════════════╗");
   console.log("║                                            ║");
-  console.log("║              🎬 抖音搜索关键词              ║");
+  console.log("║          🎬 抖音数据智能分析助手            ║");
   console.log("║                                            ║");
   console.log("╚════════════════════════════════════════════╝");
   console.log("");
