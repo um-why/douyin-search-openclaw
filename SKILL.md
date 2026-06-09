@@ -123,11 +123,11 @@ node src/douyin/hot-cli.js
 > 详细选项参数说明， 可参阅 [完整选项说明](references/options.md)
 >
 > LLM理解技能的详细选项，可参阅技能 `assets` 目录中文件，其遵循 JSON Schema draft-07 版本规范。
-> 抖音关键词搜索，[入参规范](assets/search_cli_req.schema.json)
-> 抖音关键词搜索，[出参规范](assets/search_cli_resp.schema.json)
-> 抖音抖人作品获取，[入参规范](assets/post_cli_req.schema.json)
-> 抖音抖人作品获取，[出参规范](assets/post_cli_resp.schema.json)
-> 抖音热榜获取，[出参规范](assets/hot_cli_resp.schema.json)
+> - 抖音关键词搜索，[入参规范](assets/search_cli_req.schema.json)
+> - 抖音关键词搜索，[出参规范](assets/search_cli_resp.schema.json)
+> - 抖音抖人作品获取，[入参规范](assets/post_cli_req.schema.json)
+> - 抖音抖人作品获取，[出参规范](assets/post_cli_resp.schema.json)
+> - 抖音热榜获取，[出参规范](assets/hot_cli_resp.schema.json)
 
 ## 5. ⚠️ 重要限制（不踩坑）
 
