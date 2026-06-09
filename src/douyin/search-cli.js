@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const constants = require("../config/constants");
-const key = require("../utils/key");
+const token = require("../utils/token");
 const log = require("../utils/log");
 const search = require("../api/search");
 const utils = require("../utils/utils");
@@ -12,8 +12,8 @@ function parseArgs(args) {
     keyword: "",
     sort: 0,
     time: 0,
+    duration: 0,
     limit: 10,
-    output: "json",
     helpRequested: false,
   };
 
@@ -28,11 +28,11 @@ function parseArgs(args) {
     } else if (arg === "--time" || arg === "-t") {
       result.time = Number(args[i + 1]) || 0;
       i++;
+    } else if (arg === "--duration" || arg === "-d") {
+      result.duration = Number(args[i + 1]) || 0;
+      i++;
     } else if (arg === "--limit" || arg === "-l") {
       result.limit = Number(args[i + 1]) || 10;
-      i++;
-    } else if (arg === "--output" || arg === "-o") {
-      result.output = args[i + 1] || "json";
       i++;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
@@ -53,18 +53,17 @@ function printHelp() {
   --keyword \t<关键词> \t搜索关键词
   --sort \t<排序> \t排序依据, 0: 综合排序(默认), 1: 最多点赞, 2: 最新发布
   --time \t<时间> \t发布时间, 0: 全部(默认), 1: 一天内, 7: 七天内, 180: 半年内
-  --limit \t<数量> \t搜索数量 (默认 10, 最大 200)
-  --output \t<格式> \t输出格式, json, markdown (默认 json)
+  --duration \t<时长> \t视频时长, 0: 不限(默认), 1: 1分钟以下, 2: 1-5分钟, 3: 5分钟以上
+  --limit \t<数量> \t搜索数量 (默认 10, 最大 100000)
   --help \t显示帮助信息
 
 示例1: node src/douyin/search-cli.js AI
 示例2: node src/douyin/search-cli.js "AI 模型"
-示例3: node src/douyin/search-cli.js --keyword AI --sort 0 --time 0 --limit 10 --output json
-示例4: node src/douyin/search-cli.js --keyword "AI 模型" --sort 1 --time 180 --limit 20 --output markdown
+示例3: node src/douyin/search-cli.js --keyword AI --sort 0 --time 0 --duration 0 --limit 10
+示例4: node src/douyin/search-cli.js --keyword "AI 模型" --sort 1 --time 180 --duration 2 --limit 20
 
 注意: 
   - 关键词建议 2-50 个汉字，避免特殊符号
-  - 请确保环境变量 GUAIKEI_API_TOKEN 已配置
   - 所有参数都会自动清洗和验证
 `);
 }
@@ -82,7 +81,7 @@ async function main() {
   }
 
   const parsedArgs = parseArgs(args);
-  let { keyword, sort, time, limit, output, helpRequested } = parsedArgs;
+  let { keyword, sort, time, duration, limit, helpRequested } = parsedArgs;
 
   if (helpRequested) return;
   if (!keyword) {
@@ -99,24 +98,26 @@ async function main() {
     return;
   }
   utils.printInfo(`清洗后关键词: ${keyword}`);
-  [sort, time, limit, output] = validator.optionFormat(
+  [sort, time, duration, limit] = validator.optionFormat(
     sort,
     time,
+    duration,
     limit,
-    output,
   );
   utils.printInfo(
-    `排序: ${sort}, 时间: ${time}, 数量: ${limit}, 输出格式: ${output}`,
+    `排序: ${sort}, 时间: ${time}, 时长: ${duration}, 数量: ${limit}`,
   );
 
-  const token = key.skillKey(process.env.GUAIKEI_API_TOKEN);
+  const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
+  if (tokenValue === "") return;
   let searchTask = null;
   try {
     const status = await search.createSearchTask(
-      token,
+      tokenValue,
       keyword,
       sort,
       time,
+      duration,
       limit,
     );
     if (!status || status.errcode !== 0) {
@@ -126,7 +127,14 @@ async function main() {
     }
     utils.printSuccess(`搜索任务创建成功, 正在搜索中...`);
 
-    searchTask = await search.getSearchTask(token, keyword, sort, time, limit);
+    searchTask = await search.getSearchTask(
+      tokenValue,
+      keyword,
+      sort,
+      time,
+      duration,
+      limit,
+    );
   } catch (error) {
     utils.printError(`搜索失败: ${error.message}`);
     const errorOutput = {
@@ -136,8 +144,8 @@ async function main() {
       error_code: error.code || "UNKNOWN",
       sort: sort,
       time: time,
+      duration: duration,
       limit: limit,
-      output_format: output,
       timestamp: new Date().toLocaleString(),
       results: [],
     };
@@ -154,8 +162,8 @@ async function main() {
       error_code: "NO_MATCH",
       sort: sort,
       time: time,
+      duration: duration,
       limit: limit,
-      output_format: output,
       timestamp: new Date().toLocaleString(),
       results: [],
     };
@@ -170,28 +178,22 @@ async function main() {
     message: "搜索任务完成",
     sort: sort,
     time: time,
+    duration: duration,
     limit: limit,
-    output_format: output,
     total: searchTask.length,
     timestamp: new Date().toLocaleString(),
-    openclaw_metadata: {
+    metadata: {
       skill_version: constants.VERSION,
       runtime_version: process.versions.node,
       execution_time: Date.now() - startTime,
     },
     results: searchTask,
   };
-  if (output === "markdown") {
-    const message = validator.formatMessage(keyword, searchTask);
-    utils.printInfo(message);
-    utils.printSuccess(`搜索任务完成, 共返回 ${finalOutput.total} 条结果`);
-  } else {
-    console.log(JSON.stringify(finalOutput, null, 2));
-    utils.printSuccess(`搜索任务完成, 共返回 ${finalOutput.total} 条结果`);
-  }
+  console.log(JSON.stringify(finalOutput, null, 2));
+  utils.printSuccess(`搜索任务完成, 共返回 ${finalOutput.total} 条结果`);
 
   await log.taskWrite(
-    `${startTime}_${keyword}_${sort}_${time}_search.json`,
+    `${startTime}_${keyword}_${sort}_${time}_${duration}_search.json`,
     JSON.stringify(finalOutput, null, 2),
   );
 }

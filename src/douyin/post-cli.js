@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const constants = require("../config/constants");
-const key = require("../utils/key");
+const token = require("../utils/token");
 const log = require("../utils/log");
 const post = require("../api/post");
 const utils = require("../utils/utils");
@@ -12,16 +12,13 @@ function printHelp() {
 用法: node src/douyin/post-cli.js <url> [选项]
 
 选项:
---limit -l \t<数量> \t搜索数量 (默认 10, 最大 200)
+--url -u \t<url> \t抖人主页URL或sec_uid
+--limit -l \t<数量> \t搜索数量 (默认 10, 最大 100000)
 --help -h \t显示帮助信息
 
 示例1: node src/douyin/post-cli.js https://www.douyin.com/user/MS4wLjABxxx
 示例2: node src/douyin/post-cli.js "https://v.douyin.com/xxx" --limit 20
 示例2: node src/douyin/post-cli.js MS4wLjABxxx --limit 100
-
-注意:
-  - 该脚本仅支持获取抖音抖人的作品, 不支持获取抖音视频或图文内容
-  - 请确保环境变量 GUAIKEI_API_TOKEN 已配置
 `);
 }
 
@@ -74,10 +71,11 @@ async function main() {
   utils.printInfo(`规范后的URL: ${url}`);
   limit = validator.optionFormat(limit);
 
-  const token = key.skillKey(process.env.GUAIKEI_API_TOKEN);
+  const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
+  if (tokenValue === "") return;
   let postTask = null;
   try {
-    const status = await post.createPostTask(token, url, limit);
+    const status = await post.createPostTask(tokenValue, url, limit);
     if (!status || status.errcode !== 0) {
       throw new Error(
         `获取作品任务创建时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
@@ -85,7 +83,7 @@ async function main() {
     }
     utils.printSuccess(`获取作品任务创建成功, 正在获取作品中...`);
 
-    postTask = await post.getPostTask(token, url, limit);
+    postTask = await post.getPostTask(tokenValue, url, limit);
   } catch (error) {
     utils.printError(`获取作品失败: ${error.message}`);
     const errorOutput = {
@@ -124,7 +122,7 @@ async function main() {
     limit: limit,
     total: postTask.length,
     timestamp: new Date().toLocaleString(),
-    openclaw_metadata: {
+    metadata: {
       skill_version: constants.VERSION,
       runtime_version: process.versions.node,
       execution_time: Date.now() - startTime,

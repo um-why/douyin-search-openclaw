@@ -1,67 +1,67 @@
 ---
 name: douyin-search-keyword
 description: 抖音公开数据智能分析工具。支持关键词搜索排序、抖人作品抓取、实时热榜获取，适用于短视频营销、竞品分析和热点监控，助力爆款内容策划与流量追踪。
-version: 1.1.3
+version: 1.1.4
 license: MIT
 metadata:
-  openclaw:
-    enabled: true
-    type: command
-    runtime: "nodejs@16.14.0+"
-    requires:
-      bins:
-        - "node"
-      env:
-        - "GUAIKEI_API_TOKEN"
-    category:
-      - "Data&APIs"
-      - "内容创作"
-    tags:
-      - "douyin"
-      - "抖音"
-      - "search"
-      - "搜索"
-      - "数据挖掘"
-      - "content-analysis"
-      - "营销分析"
-      - "数据分析"
-      - "competitor-analysis"
-      - "竞品分析"
-      - "热点追踪"
-      - "marketing"
-      - "trend-tracking"
-      - "workflow"
-      - "insight"
-      - "automation"
-    parameters:
-      search-cli:
-        keyword: {type: string, required: true, minLength: 2, maxLength: 50, alias: "k"}
-        sort: {type: number, enum: [0, 1, 2], default: 0, desc: "0=综合/1=最多点赞/2=最新", alias: "s"}
-        time: {type: number, enum: [0, 1, 7, 180], default: 0, desc: "0=全部/1=1天/7=7天/180=半年", alias: "t"}
-        limit: {type: number, min:1, max:200, default:10, alias: "l"}
-        output: {type: string, enum: ["json", "markdown"], default: "json", alias: "o"}
-      post-cli:
-        url: {type: string, required: true, desc: "创作者主页URL/sec_uid", alias: "u"}
-        limit: {type: number, min:1, max:200, default:10, alias: "l"}
-    examples:
-      - name: 搜索"AI 教程"获取10条综合排序的抖音内容
-        command: 'node src/douyin/search-cli.js --keyword "AI 教程"'
-        description: 快速获取关键词相关视频数据，助力内容创作灵感
-      - name: 搜索"AI"获取最多点赞的10条抖音内容
-        command: 'node src/douyin/search-cli.js --keyword "AI" --sort 1'
-        description: 挖掘爆款视频特征，优化内容策略
-      - name: 获取近7天"AI 模型"的抖音内容
-        command: 'node src/douyin/search-cli.js --keyword "AI 模型" --time 7'
-        description: 追踪近期热点趋势，把握内容窗口期
-      - name: 获取半年内最新20条"AI 教程"的抖音内容
-        command: 'node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --time 180 --limit 20'
-        description: 监控长期内容趋势，制定内容规划
-      - name: 获取抖人 MS4wLjABxxx 已发布的作品
-        command: 'node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"'
-        description: 获取抖人已发布的作品，助力竞品分析
-      - name: 获取抖音实时热搜榜单
-        command: "node src/douyin/hot-cli.js"
-        description: 实时掌握平台热点，快速响应热门话题
+  enabled: true
+  type: command
+  runtime: "nodejs@16.14.0+"
+  requires:
+    bins:
+      - "node"
+    env:
+      - "GUAIKEI_API_TOKEN"
+  category:
+    - "Data&APIs"
+    - "内容创作"
+  tags:
+    - "douyin"
+    - "抖音"
+    - "search"
+    - "搜索"
+    - "数据挖掘"
+    - "content-analysis"
+    - "营销分析"
+    - "数据分析"
+    - "competitor-analysis"
+    - "竞品分析"
+    - "热点追踪"
+    - "marketing"
+    - "trend-tracking"
+    - "workflow"
+    - "insight"
+    - "automation"
+  schemas:
+    - name: "搜索入参"
+      file: "assets/search_cli_req.schema.json"
+    - name: "搜索出参"
+      file: "assets/search_cli_resp.schema.json"
+    - name: "作品入参"
+      file: "assets/post_cli_req.schema.json"
+    - name: "作品出参"
+      file: "assets/post_cli_resp.schema.json"
+    - name: "热榜出参"
+      file: "assets/hot_cli_resp.schema.json"
+  examples:
+    - name: 搜索"AI 教程"的抖音内容
+      command: 'node src/douyin/search-cli.js --keyword "AI 教程"'
+      description: 快速获取关键词相关视频数据，助力内容创作灵感
+    - name: 搜索 AI 获取最多点赞的抖音内容
+      command: 'node src/douyin/search-cli.js --keyword "AI" --sort 1'
+      description: 挖掘爆款视频特征，优化内容策略
+    - name: 搜索近7天"AI 模型"的抖音内容
+      command: 'node src/douyin/search-cli.js --keyword "AI 模型" --time 7'
+      description: 追踪近期热点趋势，把握内容窗口期
+    - name: 搜索半年内最新20条"AI 教程"的抖音内容
+      command: 'node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --time 180 --limit 20'
+      description: 监控长期内容趋势，制定内容规划
+    - name: 获取抖人 MS4wLjABxxx 已发布的作品
+      command: 'node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"'
+      description: 获取抖人已发布的作品，助力竞品分析
+    - name: 获取抖音实时热搜榜单
+      command: "node src/douyin/hot-cli.js"
+      description: 实时掌握平台热点，快速响应热门话题
 ---
 
 # 🚀 抖音关键词搜索、竞品分析与热榜监控工具 (Douyin Search & Analytics)
@@ -84,7 +84,7 @@ metadata:
 
 ## 2. 🚀 最快上手（复制就能跑，30 秒出结果）
 
-> **Note:** 请先通过微信 <13395823479> 申请 API TOKEN，配置环境变量 `GUAIKEI_API_TOKEN` 后才能正常运行。
+> **Note:** 请先通过微信 <13395823479> 申请TOKEN ，或访问[抖音搜索技能官网](https://www.guaikei.com)开通TOKEN，配置环境变量 `GUAIKEI_API_TOKEN` 后才能正常运行。
 
 ### 2.1 🔎 抖音关键词搜索（最简单）
 
@@ -120,28 +120,14 @@ node src/douyin/hot-cli.js
 
 ## 4. 🔧 参数详解表
 
-### 🔎 抖音关键词搜索
-
-| 参数        | 缩写 | 作用       | 可选值                                      | 必填 |
-| :---------- | :--: | :--------- | :------------------------------------------ | :--: |
-| `--keyword` | `-k` | 搜索关键词 | 2-50 个汉字                                 |  是  |
-| `--sort`    | `-s` | 排序方式   | 0 = 综合 / 1 = 点赞 / 2 = 最新              |  否  |
-| `--time`    | `-t` | 时间范围   | 0 = 全部 / 1 = 1 天 / 7 = 7 天 / 180 = 半年 |  否  |
-| `--limit`   | `-l` | 获取数量   | 1-200 条                                    |  否  |
-| `--output`  | `-o` | 输出格式   | json / markdown                             |  否  |
-
-### 🦸 抖音抖人作品获取
-
-| 参数      | 缩写 | 类型   | 说明                       |
-| :-------- | :--- | :----- | :------------------------- |
-| `--url`   | `-u` | 字符串 | 必填，抖人主页URL或sec_uid |
-| `--limit` | `-l` | 1-200  | 获取作品数量 (默认10)      |
-
-> **💡"抖人主页URL"说明**
+> 详细选项参数说明， 可参阅 [完整选项说明](references/options.md)
 >
-> - PC端 ( 格式：<https://www.douyin.com/user/MS4wLjABxxx> )
-> - 移动端 ( 格式：<https://v.douyin.com/xxx> )
-> - 本技能关键词搜索返回的author_sec_uid字段
+> LLM理解技能的详细选项，可参阅技能 `assets` 目录中文件，其遵循 JSON Schema draft-07 版本规范。
+> 抖音关键词搜索，[入参规范](assets/search_cli_req.schema.json)
+> 抖音关键词搜索，[出参规范](assets/search_cli_resp.schema.json)
+> 抖音抖人作品获取，[入参规范](assets/post_cli_req.schema.json)
+> 抖音抖人作品获取，[出参规范](assets/post_cli_resp.schema.json)
+> 抖音热榜获取，[出参规范](assets/hot_cli_resp.schema.json)
 
 ## 5. ⚠️ 重要限制（不踩坑）
 
@@ -165,8 +151,8 @@ node src/douyin/hot-cli.js
 >
 > A：自动保存在技能目录的 `logs` 文件夹下
 >
-> - 搜索任务日志: 默认保存为「时间戳_关键词_排序_时间_search.json」
-> - 抖人作品获取日志: 默认保存为「时间戳_(抖人author_sec_uid)_post.json」
+> - 搜索任务日志: 默认保存为「时间戳\_关键词\_排序\_时间\_时长\_search.json」
+> - 抖人作品获取日志: 默认保存为「时间戳\_(抖人sec_uid)\_post.json」
 >
 > **💡Q：支持 Windows/Mac/Linux 吗？**
 >
@@ -174,4 +160,7 @@ node src/douyin/hot-cli.js
 
 ## 7. 📞 帮助与支持
 
-TOKEN 申请 / 使用问题：微信 13395823479（备注抖音技能）
+- 联系微信 13395823479（备注抖音技能）开通TOKEN或获得技能使用支持；
+- 或通过 [抖音关键词搜索技能官网](https://www.guaikei.com) 自助开通TOKEN或查阅使用帮助。
+
+🆕 [更新日志](references/changelog.md) 可查阅这里

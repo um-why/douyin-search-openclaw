@@ -23,8 +23,8 @@ function douyinUserUrl(url) {
 
 function optionFormat(limit) {
   limit = Number(limit);
-  if (limit < 1 || limit > 200) {
-    utils.printError("获取的作品数量必须在1-200之间");
+  if (limit < 1 || limit > 100000) {
+    utils.printError("获取的作品数量必须在1-100000之间");
     limit = 10;
   }
   return limit;

@@ -44,15 +44,15 @@ function cleanKeyword(keyword) {
  * 格式化并验证搜索选项
  * @param {number} sort - 排序依据 (0:综合, 1:最多点赞, 2:最新发布)
  * @param {number} time - 时间范围 (0:全部, 1:一天内, 7:七天内, 180:半年内)
- * @param {number} limit - 搜索数量 (1-200)
- * @param {string} output - 输出格式 ('json' | 'markdown')
- * @returns {[number, number, number, string]} 格式化后的选项数组
+ * @param {number} duration - 视频时长 (0:不限, 1:1分钟以下, 2:1-5分钟, 3:5分钟以上)
+ * @param {number} limit - 搜索数量 (1-100000)
+ * @returns {[number, number, number, number]} 格式化后的选项数组
  */
-function optionFormat(sort, time, limit, output) {
+function optionFormat(sort, time, duration, limit) {
   sort = sort || 0;
   time = time || 0;
+  duration = duration || 0;
   limit = limit || 10;
-  output = output || "json";
   if (sort !== 0 && sort !== 1 && sort !== 2) {
     utils.printError(`排序依据 ${sort} 无效, 请使用 0, 1, 2。 默认值为 0`);
     sort = 0;
@@ -61,17 +61,17 @@ function optionFormat(sort, time, limit, output) {
     utils.printError(`发布时间 ${time} 无效, 请使用 0, 1, 7, 180。 默认值为 0`);
     time = 0;
   }
-  if (limit < 1 || limit > 200) {
-    utils.printError(`搜索数量 ${limit} 无效, 请使用 1-200。 默认值为 10`);
+  if (duration !== 0 && duration !== 1 && duration !== 2 && duration !== 3) {
+    utils.printError(
+      `视频时长 ${duration} 无效, 请使用 0, 1, 2, 3。 默认值为 0`,
+    );
+    duration = 0;
+  }
+  if (limit < 1 || limit > 100000) {
+    utils.printError(`搜索数量 ${limit} 无效, 请使用 1-100000 默认值为 10`);
     limit = 10;
   }
-  if (output !== "json" && output !== "markdown") {
-    utils.printError(
-      `输出格式 ${output} 无效, 请使用 json, markdown。 默认值为 json`,
-    );
-    output = "json";
-  }
-  return [sort, time, limit, output];
+  return [sort, time, duration, limit];
 }
 
 function formatMessage(keyword, result) {

@@ -1,6 +1,6 @@
 {
   "name": "douyin-search-keyword",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "抖音公开数据智能分析工具。支持关键词搜索排序、抖人作品抓取、实时热榜获取，适用于短视频营销、竞品分析和热点监控，助力爆款内容策划与流量追踪。",
   "keywords": [
     "douyin",
@@ -15,5 +15,10 @@
   "type": "commonjs",
   "engines": {
     "node": ">=16.14.0"
+  },
+  "scripts": {
+    "search": "node src/douyin/search-cli.js",
+    "post": "node src/douyin/post-cli.js",
+    "hot": "node src/douyin/hot-cli.js"
   }
 }
