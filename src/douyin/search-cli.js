@@ -50,17 +50,17 @@ function printHelp() {
 用法: node src/douyin/search-cli.js <关键词> [选项]
 
 选项:
-  --keyword \t<关键词> \t搜索关键词
-  --sort \t<排序> \t排序依据, 0: 综合排序(默认), 1: 最多点赞, 2: 最新发布
-  --time \t<时间> \t发布时间, 0: 全部(默认), 1: 一天内, 7: 七天内, 180: 半年内
-  --duration \t<时长> \t视频时长, 0: 不限(默认), 1: 1分钟以下, 2: 1-5分钟, 3: 5分钟以上
-  --limit \t<数量> \t搜索数量 (默认 10, 最大 100000)
-  --help \t显示帮助信息
+  --keyword, -k \t<关键词> \t搜索关键词
+  --sort, -s \t<排序> \t排序依据, 0: 综合排序(默认), 1: 最多点赞, 2: 最新发布
+  --time, -t \t<时间> \t发布时间, 0: 全部(默认), 1: 一天内, 7: 七天内, 180: 半年内
+  --duration, -d \t<时长> \t视频时长, 0: 不限(默认), 1: 1分钟以下, 2: 1-5分钟, 3: 5分钟以上
+  --limit, -l \t<数量> \t搜索数量 (默认 10, 最大 10000)
+  --help, -h \t显示帮助信息
 
-示例1: node src/douyin/search-cli.js AI
-示例2: node src/douyin/search-cli.js "AI 模型"
+示例1: node src/douyin/search-cli.js --keyword "AI"
+示例2: node src/douyin/search-cli.js --keyword "AI 模型"
 示例3: node src/douyin/search-cli.js --keyword AI --sort 0 --time 0 --duration 0 --limit 10
-示例4: node src/douyin/search-cli.js --keyword "AI 模型" --sort 1 --time 180 --duration 2 --limit 20
+示例4: node src/douyin/search-cli.js -k "AI 模型" -s 1 -t 180 -d 2 -l 100
 
 注意: 
   - 关键词建议 2-50 个汉字，避免特殊符号

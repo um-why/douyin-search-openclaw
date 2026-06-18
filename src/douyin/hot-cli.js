@@ -4,7 +4,6 @@ const constants = require("../config/constants");
 const token = require("../utils/token");
 const hot = require("../api/hot");
 const utils = require("../utils/utils");
-const validator = require("../validate/hot");
 
 /**
  * 主函数 - 获取抖音热榜入口

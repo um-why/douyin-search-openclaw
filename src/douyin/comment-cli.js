@@ -3,24 +3,9 @@
 const constants = require("../config/constants");
 const token = require("../utils/token");
 const log = require("../utils/log");
-const post = require("../api/post");
+const comment = require("../api/comment");
 const utils = require("../utils/utils");
-const validator = require("../validate/post");
-
-function printHelp() {
-  console.log(`
-用法: node src/douyin/post-cli.js <url> [选项]
-
-选项:
---url, -u \t<url> \t抖人主页URL或sec_uid
---limit, -l \t<limit> \t搜索数量 (默认 10, 最大 10000)
---help, -h \t显示帮助信息
-
-示例1: node src/douyin/post-cli.js https://www.douyin.com/user/MS4wLjABxxx
-示例2: node src/douyin/post-cli.js --url "https://v.douyin.com/xxx" --limit 20
-示例3: node src/douyin/post-cli.js -u MS4wLjABxxx --limit 100
-`);
-}
+const validator = require("../validate/comment");
 
 function parseArgs(args) {
   const result = {
@@ -28,6 +13,7 @@ function parseArgs(args) {
     limit: 10,
     helpRequested: false,
   };
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--url" || arg === "-u") {
@@ -39,7 +25,7 @@ function parseArgs(args) {
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       result.helpRequested = true;
-    } else if (!arg.startsWith("--") && !result.url) {
+    } else if (!arg.startsWith("--") && !result.keyword) {
       result.url = arg;
     }
   }
@@ -47,8 +33,23 @@ function parseArgs(args) {
   return result;
 }
 
+function printHelp() {
+  console.log(`
+用法: node src/douyin/comment-cli.js <url> [选项]
+
+选项:
+--url, -u \t<url> \t抖音视频(或图文)URL或aweme_id
+--limit, -l \t<limit> \t评论数量 (默认10, 最大10000)
+--help, -h \t显示帮助信息
+
+示例1: node src/douyin/comment-cli.js https://www.douyin.com/video/xxx
+示例2: node src/douyin/comment-cli.js --url https://www.douyin.com/note/xxx --limit 20
+示例3: node src/douyin/comment-cli.js -u xxx --limit 100
+`);
+}
+
 /**
- * 主函数 - 获取抖音博主作品列表
+ * 主函数 - 获取抖音作品的评论列表
  */
 async function main() {
   const startTime = Date.now();
@@ -57,38 +58,38 @@ async function main() {
     printHelp();
     return;
   }
+
   const parsedArgs = parseArgs(args);
   if (parsedArgs.helpRequested) {
     return;
   }
   let { url, limit } = parsedArgs;
   if (!url) {
-    utils.printError("请提供抖音博主URL或sec_uid");
+    utils.printError("请提供抖音视频(或图文)URL或aweme_id");
     printHelp();
     return;
   }
 
   utils.printBanner();
   utils.printInfo(`原始URL: ${url}`);
-  url = validator.douyinUserUrl(url);
+  url = validator.douyinPostUrl(url);
   utils.printInfo(`规范后的URL: ${url}`);
   limit = validator.optionFormat(limit);
-
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
   if (tokenValue === "") return;
-  let postTask = null;
+  let commentTask = null;
   try {
-    const status = await post.createPostTask(tokenValue, url, limit);
+    const status = await comment.createCommentTask(tokenValue, url, limit);
     if (!status || status.errcode !== 0) {
       throw new Error(
-        `获取作品任务创建时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
+        `获取评论任务创建时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
       );
     }
-    utils.printSuccess(`获取作品任务创建成功, 正在获取作品中...`);
+    utils.printSuccess(`获取评论任务创建成功, 正在获取评论中...`);
 
-    postTask = await post.getPostTask(tokenValue, url, limit);
+    commentTask = await comment.getCommentTask(tokenValue, url, limit);
   } catch (error) {
-    utils.printError(`获取作品失败: ${error.message}`);
+    utils.printError(`获取评论失败: ${error.message}`);
     const errorOutput = {
       status: "error",
       url: url,
@@ -102,12 +103,12 @@ async function main() {
     return;
   }
 
-  if (!postTask || !Array.isArray(postTask) || postTask.length === 0) {
-    utils.printError(`获取作品任务没有返回结果, 请稍后重试或联系开发者`);
+  if (!commentTask || !Array.isArray(commentTask) || commentTask.length === 0) {
+    utils.printError(`获取评论任务没有返回结果, 请稍后重试或联系开发者`);
     const emptyOutput = {
       status: "empty",
       url: url,
-      message: "没有找到匹配的作品",
+      message: "没有找到匹配的评论",
       error_code: "NO_MATCH",
       limit: limit,
       timestamp: new Date().toLocaleString(),
@@ -117,29 +118,30 @@ async function main() {
     return;
   }
 
-  // 输出作品结果
+  // 输出评论结果
   const finalOutput = {
     status: "success",
     url: url,
-    message: "获取作品任务完成",
+    message: "获取评论任务完成",
     limit: limit,
-    total: postTask.length,
+    total: commentTask.length,
     timestamp: new Date().toLocaleString(),
     metadata: {
       skill_version: constants.VERSION,
       runtime_version: process.versions.node,
       execution_time: Date.now() - startTime,
     },
-    results: postTask,
+    results: commentTask,
   };
   console.log(JSON.stringify(finalOutput, null, 2));
-  utils.printSuccess(`获取作品任务完成, 共 ${finalOutput.total} 条结果`);
+  utils.printSuccess(`获取评论任务完成, 共返回 ${finalOutput.total} 条结果`);
 
   url = url.replace(/[^a-zA-Z0-9_-]/g, "");
-  url = url.replace("httpswwwdouyincomuser", "");
-  url = url.replace("httpsvdouyincom", "");
+  url = url.replace("httpswwwdouyincom", "");
+  url = url.replace("note", "");
+  url = url.replace("video", "");
   await log.taskWrite(
-    `${startTime}_${url}_post.json`,
+    `${startTime}_${url}_comment.json`,
     JSON.stringify(finalOutput, null, 2),
   );
 }
