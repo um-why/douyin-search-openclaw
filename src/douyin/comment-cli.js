@@ -25,7 +25,7 @@ function parseArgs(args) {
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       result.helpRequested = true;
-    } else if (!arg.startsWith("--") && !result.keyword) {
+    } else if (!arg.startsWith("--") && !result.url) {
       result.url = arg;
     }
   }
