@@ -3,6 +3,14 @@ const path = require("path");
 const utils = require("./utils");
 
 async function taskWrite(filename, content) {
+  if (!filename || typeof filename !== "string") {
+    utils.printError("日志文件名必须是非空字符串");
+    return;
+  }
+  if (!content || typeof content !== "string") {
+    utils.printError("日志内容必须是非空字符串");
+    return;
+  }
   const safeFilename = filename.replace(/[\\/:*?"<>|]/g, "_");
   const outputFilename = path.join(
     path.dirname(__filename),

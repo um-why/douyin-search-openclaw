@@ -60,6 +60,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  utils.printError(error);
+  utils.printError(error.message);
   process.exit(1);
 });

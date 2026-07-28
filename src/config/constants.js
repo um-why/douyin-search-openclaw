@@ -21,7 +21,7 @@ module.exports = {
   /**
    * 查询任务最大重试次数
    */
-  QUERY_MAX_ATTEMPTS: 60,
+  QUERY_MAX_ATTEMPTS: 20,
 
   /**
    * 重试间隔时间 (毫秒)

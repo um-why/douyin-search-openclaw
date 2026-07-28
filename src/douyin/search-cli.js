@@ -6,6 +6,7 @@ const log = require("../utils/log");
 const search = require("../api/search");
 const utils = require("../utils/utils");
 const validator = require("../validate/keyword");
+const { ApiError } = require("../utils/errors");
 
 function parseArgs(args) {
   const result = {
@@ -121,7 +122,8 @@ async function main() {
       limit,
     );
     if (!status || status.errcode !== 0) {
-      throw new Error(
+      throw new ApiError(
+        status?.errcode || "UNKNOWN",
         `搜索任务创建失败时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
       );
     }
@@ -199,6 +201,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  utils.printError(error);
+  utils.printError(error.message);
   process.exit(1);
 });

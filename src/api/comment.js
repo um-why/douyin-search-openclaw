@@ -16,7 +16,7 @@ function processCommentResults(data) {
       processedItem.user_url = `https://www.douyin.com/user/${item.user_sec_uid}`;
     }
 
-    if (item.create_time) {
+    if (item.create_time !== null) {
       processedItem.create_time_str = new Date(
         item.create_time * 1000,
       ).toLocaleString();

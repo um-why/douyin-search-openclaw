@@ -6,6 +6,7 @@ const log = require("../utils/log");
 const post = require("../api/post");
 const utils = require("../utils/utils");
 const validator = require("../validate/post");
+const { ApiError } = require("../utils/errors");
 
 function printHelp() {
   console.log(`
@@ -80,7 +81,8 @@ async function main() {
   try {
     const status = await post.createPostTask(tokenValue, url, limit);
     if (!status || status.errcode !== 0) {
-      throw new Error(
+      throw new ApiError(
+        status?.errcode || "UNKNOWN",
         `获取作品任务创建时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
       );
     }
@@ -145,6 +147,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  utils.printError(error);
+  utils.printError(error.message);
   process.exit(1);
 });

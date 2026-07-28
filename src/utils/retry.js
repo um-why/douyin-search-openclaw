@@ -17,7 +17,10 @@ async function withRetry(fn, maxAttempts, errorHandler) {
       lastError = error;
       if (errorHandler) errorHandler(attempt, error);
       if (attempt < maxAttempts - 1) {
-        const delay = Math.pow(2, attempt) * constants.RETRY_INTERVAL;
+        const delay = Math.min(
+          Math.pow(2, attempt) * constants.RETRY_INTERVAL,
+          60000,
+        );
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }

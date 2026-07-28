@@ -21,6 +21,7 @@ function printBanner() {
  * @param {string} message - 日志消息内容
  */
 function printLog(level, message) {
+  message = String(message ?? "");
   const colorMap = {
     INFO: "\x1b[34m",
     SUCCESS: "\x1b[32m",
