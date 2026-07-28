@@ -13,6 +13,8 @@ const utils = require("../utils/utils");
 
 async function request(options, data = null) {
   return new Promise((resolve, reject) => {
+    let timedOut = false;
+
     const req = https.request(
       { ...options, timeout: constants.REQUEST_TIMEOUT },
       (res) => {
@@ -20,9 +22,7 @@ async function request(options, data = null) {
         let body = "";
         res.on("data", (chunk) => (body += chunk));
         res.on("end", () => {
-          if (timedOut) {
-            return;
-          }
+          if (timedOut) return;
           if (res.statusCode === 200) {
             try {
               const jsonBody = JSON.parse(body);
@@ -50,6 +50,7 @@ async function request(options, data = null) {
               new ApiError(
                 `HTTP_${res.statusCode}`,
                 `请求失败, 状态码: ${res.statusCode}`,
+                true,
               ),
             );
           }
@@ -68,7 +69,6 @@ async function request(options, data = null) {
       }
     });
 
-    let timedOut = false;
     req.on("timeout", () => {
       timedOut = true;
       req.destroy();
@@ -102,6 +102,7 @@ async function postJson(path, params, data) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Accept-Encoding": "identity",
       "Content-Length": Buffer.byteLength(jsonData),
     },
   };

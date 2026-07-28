@@ -93,11 +93,11 @@ async function main() {
 
   utils.printBanner();
   utils.printInfo(`原始关键词: ${keyword}`);
-  keyword = validator.cleanKeyword(keyword);
   const isRight = validator.isKeywordValid(keyword);
   if (!isRight) {
     return;
   }
+  keyword = validator.cleanKeyword(keyword);
   utils.printInfo(`清洗后关键词: ${keyword}`);
   [sort, time, duration, limit] = validator.optionFormat(
     sort,

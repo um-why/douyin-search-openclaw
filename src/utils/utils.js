@@ -7,12 +7,12 @@
  * @description 在控制台显示抖音搜索关键词的ASCII艺术横幅
  */
 function printBanner() {
-  console.log("╔════════════════════════════════════════════╗");
-  console.log("║                                            ║");
-  console.log("║          🎬 抖音数据智能分析助手            ║");
-  console.log("║                                            ║");
-  console.log("╚════════════════════════════════════════════╝");
-  console.log("");
+  process.stderr.write("╔════════════════════════════════════════════╗\n");
+  process.stderr.write("║                                            ║\n");
+  process.stderr.write("║          🎬 抖音数据智能分析助手            ║\n");
+  process.stderr.write("║                                            ║\n");
+  process.stderr.write("╚════════════════════════════════════════════╝\n");
+  process.stderr.write("\n");
 }
 
 /**
@@ -28,7 +28,7 @@ function printLog(level, message) {
     WARN: "\x1b[33m",
     ERROR: "\x1b[31m",
   };
-  console.log(
+  console.error(
     `${colorMap[level] || ""}[${new Date().toLocaleString()}] [${level}] ${message}\x1b[0m`,
   );
 }

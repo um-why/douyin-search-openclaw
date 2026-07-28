@@ -49,27 +49,27 @@ metadata:
     - name: "评论出参"
       file: "assets/comment_cli_resp.schema.json"
   examples:
-    - name: 搜索"AI 教程"的抖音内容
+    - name: 搜索 AI 教程视频
       command: 'node src/douyin/search-cli.js --keyword "AI 教程"'
-      description: 快速获取关键词相关视频数据，助力内容创作灵感
-    - name: 搜索 AI 获取最多点赞的抖音内容
+      description: 用户说"搜索 AI 教程"时使用
+    - name: 找点赞最多的视频
       command: 'node src/douyin/search-cli.js --keyword "AI" --sort 1'
-      description: 挖掘爆款视频特征，优化内容策略
-    - name: 搜索近7天"AI 模型"的抖音内容
+      description: 用户说"找最火的 AI 视频"时使用
+    - name: 最新发布的内容
       command: 'node src/douyin/search-cli.js --keyword "AI 模型" --time 7'
-      description: 追踪近期热点趋势，把握内容窗口期
-    - name: 搜索半年内最新20条"AI 教程"的抖音内容
+      description: 用户说"最新的 AI 模型视频"时使用
+    - name: 搜索半年内最新20条 AI 教程视频
       command: 'node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --time 180 --limit 20'
-      description: 监控长期内容趋势，制定内容规划
-    - name: 获取抖人 MS4wLjABxxx 已发布的作品
+      description: 用户说"半年内最新 AI 教程视频"时使用
+    - name: 获取博主作品
       command: 'node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"'
-      description: 获取抖人已发布的作品，助力竞品分析
-    - name: 获取抖音作品 https://www.douyin.com/video/xxx 评论区内容
+      description: 用户说"查看这个博主的作品"时使用
+    - name: 获取视频评论
       command: 'node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx"'
-      description: 获取抖音评论详情，分析舆情方向
-    - name: 获取抖音实时热搜榜单
+      description: 用户说"看看这个视频的评论"时使用
+    - name: 获取热榜
       command: "node src/douyin/hot-cli.js"
-      description: 实时掌握平台热点，快速响应热门话题
+      description: 用户说"抖音今天有什么热点"时使用
 ---
 
 # 🚀 抖音关键词搜索、竞品分析、舆情监控与热点跟踪工具 (Douyin Search & Analytics)
@@ -164,7 +164,6 @@ node src/douyin/hot-cli.js
 >
 > - Windows: `set GUAIKEI_API_TOKEN=你的TOKEN`
 > - Linux/MacOS: `export GUAIKEI_API_TOKEN=你的TOKEN`
->
 > - 私有TOKEN申请后请留意使用安全，避免泄露给他人
 >
 > **💡Q：搜索结果为空？**
@@ -189,3 +188,109 @@ node src/douyin/hot-cli.js
 - 或通过 [抖音关键词搜索技能官网](https://www.guaikei.com) 自助开通TOKEN或查阅使用帮助。
 
 > 🆕 [更新日志](references/changelog.md) 可查阅这里
+
+## 8. 🛑 错误处理与重试策略（重要）
+
+### 8.1 遇到以下错误，立即停止操作并向用户报告
+
+- **权限错误**（AUTH_ERROR）：TOKEN 无效或已过期，请提示用户重新配置
+- **API 次数超限**：提示用户联系客服开通更高额度
+- **网络错误连续 3 次失败**：提示用户检查网络连接
+
+### 8.2 禁止行为
+
+- ❌ 不要在收到 AUTH_ERROR 后继续重试
+- ❌ 不要在 API 返回明确错误码后尝试修改参数重试
+- ❌ 不要在用户未明确要求的情况下自动调整搜索条件
+
+### 8.3 正确做法
+
+- ✅ 遇到错误，立即向用户展示错误信息
+- ✅ 询问用户是否需要调整参数或重新尝试
+- ✅ 对于网络超时，可以尝试最多 3 次之后停止
+
+## 9. 💬 自然语言指令映射（AI 快速参考）
+
+> **统一调用约定（重要）**
+>
+> - 必须在**技能根目录**执行。
+> - 需要被 AI / 程序解析时，加 `--json`：只输出纯 JSON 到 stdout，日志与 banner 走 stderr，便于稳定解析。
+> - 退出码约定：`0`=成功（含 empty），`1`=运行错误，`3`=auth_required（缺/错 token）。
+
+### 9.1 搜索功能
+
+| 用户口语化指令                    | 对应命令                                                                           | 参数推导                     |
+| --------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------- |
+| "搜索 / 搜一下 / 找 AI 相关视频"  | `node src/douyin/search-cli.js --keyword "AI"`                                     | 带关键词即搜索               |
+| "找点赞最多的 / 最火的 AI 视频"   | `node src/douyin/search-cli.js --keyword "AI" --sort 1`                            | 最火/点赞最多 → sort=1       |
+| "最新的 AI 教程，要 20 条"        | `node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --limit 20`            | 最新 → sort=2；数量 → limit  |
+| "近一周最火的短视频"              | `node src/douyin/search-cli.js --keyword "短视频" --time 7 --sort 1`               | 一周 → time=7；最火 → sort=1 |
+| "半年内最新 20 条 AI 教程"        | `node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --time 180 --limit 20` | 半年 → time=180              |
+| "减肥视频，只要 1 分钟以下的"     | `node src/douyin/search-cli.js --keyword "减肥" --duration 1`                      | 见下方 duration 表           |
+| "AI 模型，5 分钟以上的，前 50 条" | `node src/douyin/search-cli.js --keyword "AI 模型" --duration 3 --limit 50`        | 5分钟以上 → duration=3       |
+
+### 9.2 竞品监控
+
+| 用户口语化指令                  | 对应命令                                                                      | 参数推导              |
+| ------------------------------- | ----------------------------------------------------------------------------- | --------------------- |
+| "查看这个博主的所有作品 / 主页" | `node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"` | 作品/主页/账号 → post |
+| "抓取 MS4wLjABxxx 的作品"       | `node src/douyin/post-cli.js --url "MS4wLjABxxx"`                             | sec_uid 直接可用      |
+| "获取他最近 50 条视频"          | `node src/douyin/post-cli.js --url "xxx" --limit 50`                          | 数量 → limit          |
+
+### 9.3 评论分析
+
+| 用户口语化指令              | 对应命令                                                                  | 参数推导            |
+| --------------------------- | ------------------------------------------------------------------------- | ------------------- |
+| "看看这个视频的评论 / 留言" | `node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx"` | 评论/留言 → comment |
+| "获取这条视频的 100 条评论" | `node src/douyin/comment-cli.js --url "xxx" --limit 100`                  | 数量 → limit        |
+
+### 9.4 热榜
+
+| 用户口语化指令                           | 对应命令                     |
+| ---------------------------------------- | ---------------------------- |
+| "抖音今天有什么热点 / 热搜榜 / 热点榜单" | `node src/douyin/hot-cli.js` |
+
+## 10. 🧠 AI 意图识别规则
+
+### 10.1 识别优先级（从上到下）
+
+1. **热搜 / 热点 / 榜单 / 今天什么火** → `hot-cli.js`
+2. **搜索 / 搜一下 / 找 + 关键词** → `search-cli.js`
+3. **评论 / 留言 / 弹幕** → `comment-cli.js`（必须出现"评论"类词才归此类）
+4. **作品 / 视频(指博主内容) / 主页 / 账号 / 博主** → `post-cli.js`
+
+> ⚠️ 歧义提示：单独出现"视频"二字时，**不要默认归到 post-cli**。
+>
+> - 若同时有"关键词"且无"评论" → 视为 `search`（用户想搜某个视频）。
+> - 若明确"这个视频的评论/留言" → `comment`。
+> - 仅当"作品/主页/账号/博主"出现时才用 `post`。
+
+### 10.2 参数推断规则
+
+**排序（sort，与 time 正交）**
+
+- 提到"综合 / 默认" → `sort=0`
+- 提到"点赞最多 / 最火 / 爆款" → `sort=1`
+- 提到"最新 / 最近发布 / 刚发" → `sort=2`
+
+**时间窗（time）**
+
+- 提到"全部 / 不限制" → `time=0`
+- 提到"一天 / 24小时" → `time=1`
+- 提到"一周 / 7天" → `time=7`
+- 提到"半年" → `time=180`
+
+**时长**
+
+- 提到"1分钟以下 / 短于1分钟" → `duration=1`
+- 提到"1到5分钟 / 1-5分钟" → `duration=2`
+- 提到"5分钟以上" → `duration=3`
+- 提到"不限时长" → `duration=0`
+
+**数量（limit）**
+
+- 提到"条数 / 数量 / N条 / 前N条" → `limit=N`
+
+### 10.3 默认值
+
+- sort: 0（综合）｜time: 0（全部）｜duration: 0（不限）｜limit: 10

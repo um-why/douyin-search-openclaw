@@ -15,6 +15,9 @@ async function withRetry(fn, maxAttempts, errorHandler) {
       return await fn(attempt);
     } catch (error) {
       lastError = error;
+      if (error && error.noRetry) {
+        throw error;
+      }
       if (errorHandler) errorHandler(attempt, error);
       if (attempt < maxAttempts - 1) {
         const delay = Math.min(
