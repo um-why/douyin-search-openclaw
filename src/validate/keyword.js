@@ -45,13 +45,15 @@ function cleanKeyword(keyword) {
  * @param {number} sort - 排序依据 (0:综合, 1:最多点赞, 2:最新发布)
  * @param {number} time - 时间范围 (0:全部, 1:一天内, 7:七天内, 180:半年内)
  * @param {number} duration - 视频时长 (0:不限, 1:1分钟以下, 2:1-5分钟, 3:5分钟以上)
+ * @param {number} content - 内容类型 (0:不限, 1:视频, 2:图文)
  * @param {number} limit - 搜索数量 (1-10000)
  * @returns {[number, number, number, number]} 格式化后的选项数组
  */
-function optionFormat(sort, time, duration, limit) {
+function optionFormat(sort, time, duration, content, limit) {
   sort = sort || 0;
   time = time || 0;
   duration = duration || 0;
+  content = content || 0;
   limit = limit || 10;
   if (sort !== 0 && sort !== 1 && sort !== 2) {
     utils.printError(`排序依据 ${sort} 无效, 请使用 0, 1, 2。 默认值为 0`);
@@ -67,11 +69,15 @@ function optionFormat(sort, time, duration, limit) {
     );
     duration = 0;
   }
+  if (content !== 0 && content !== 1 && content !== 2) {
+    utils.printError(`内容类型 ${content} 无效, 请使用 0, 1, 2。 默认值为 0`);
+    content = 0;
+  }
   if (limit < 1 || limit > 10000) {
     utils.printError(`搜索数量 ${limit} 无效, 请使用 1-10000 默认值为 10`);
     limit = 10;
   }
-  return [sort, time, duration, limit];
+  return [sort, time, duration, content, limit];
 }
 
 function formatMessage(keyword, result) {

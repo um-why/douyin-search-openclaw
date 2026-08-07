@@ -13,7 +13,7 @@ async function main() {
   utils.printBanner();
 
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") return;
+  if (tokenValue === "") process.exit(1);
   let hotTask = null;
   try {
     hotTask = await hot.getHotTask(tokenValue);
@@ -21,26 +21,42 @@ async function main() {
     utils.printError(`获取抖音热榜失败: ${error.message}`);
     const errorOutput = {
       status: "error",
-      message: error.message,
       error_code: error.code || "UNKNOWN",
+      message: error.message,
       timestamp: new Date().toLocaleString(),
-      results: [],
+      request: {
+        command: "hot",
+      },
+      metadata: {
+        skill_version: constants.VERSION,
+        runtime_version: process.versions.node,
+        execution_time: Date.now() - startTime,
+      },
+      results: null,
     };
     console.log(JSON.stringify(errorOutput, null, 2));
-    return;
+    process.exit(1);
   }
 
   if (!hotTask || !Array.isArray(hotTask) || hotTask.length === 0) {
     utils.printError(`抖音热榜没有返回结果, 请稍后重试或联系开发者`);
     const emptyOutput = {
       status: "empty",
-      message: "没有找到最新的抖音热榜",
       error_code: "NO_MATCH",
+      message: "没有找到最新的抖音热榜",
       timestamp: new Date().toLocaleString(),
-      results: [],
+      request: {
+        command: "hot",
+      },
+      metadata: {
+        skill_version: constants.VERSION,
+        runtime_version: process.versions.node,
+        execution_time: Date.now() - startTime,
+      },
+      results: null,
     };
     console.log(JSON.stringify(emptyOutput, null, 2));
-    return;
+    process.exit(1);
   }
 
   // 输出热榜结果

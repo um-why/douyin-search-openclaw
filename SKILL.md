@@ -12,6 +12,8 @@ metadata:
       - "node"
     env:
       - "GUAIKEI_API_TOKEN"
+  env_desc:
+    GUAIKEI_API_TOKEN: "抖音数据 API 访问令牌。未配置时无法调用接口；可通过 https://www.guaikei.com 开通，或联系开发者(wx 13395823479)获取支持。"
   category:
     - "Data&APIs"
     - "内容创作"
@@ -174,7 +176,7 @@ node src/douyin/hot-cli.js
 >
 > A：自动保存在技能目录的 `logs` 文件夹下
 >
-> - 搜索任务日志: 默认保存为「时间戳\_关键词\_排序\_时间\_时长\_search.json」
+> - 搜索任务日志: 默认保存为「时间戳\_关键词\_排序\_时间\_时长\_类型\_search.json」
 > - 抖人作品获取日志: 默认保存为「时间戳\_(抖人sec_uid)\_post.json」
 > - 抖音评论获取日志: 默认保存为「时间戳\_(视频aweme_id)\_comment.json」
 >
@@ -286,6 +288,12 @@ node src/douyin/hot-cli.js
 - 提到"1到5分钟 / 1-5分钟" → `duration=2`
 - 提到"5分钟以上" → `duration=3`
 - 提到"不限时长" → `duration=0`
+
+**内容类型**
+
+- 提到"不限 / 默认" → `content=0`
+- 提到"视频" → `content=1`
+- 提到"图文" → `content=2`
 
 **数量（limit）**
 

@@ -11,7 +11,17 @@ async function taskWrite(filename, content) {
     utils.printError("日志内容必须是非空字符串");
     return;
   }
-  const safeFilename = filename.replace(/[\\/:*?"<>|]/g, "_");
+  let safeFilename = filename
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\.\.+/g, "_")
+    .replace(/^\.+|\.+$/g, "");
+
+  if (safeFilename.length > 200) {
+    safeFilename = safeFilename.slice(0, 200);
+  }
+  if (!safeFilename) {
+    safeFilename = `log_${Date.now()}`;
+  }
   const outputFilename = path.join(
     path.dirname(__filename),
     "..",

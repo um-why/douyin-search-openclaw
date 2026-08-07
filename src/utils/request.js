@@ -10,6 +10,7 @@ const {
   AuthError,
 } = require("./errors");
 const utils = require("../utils/utils");
+const { skillName } = require("../utils/name");
 
 async function request(options, data = null) {
   return new Promise((resolve, reject) => {
@@ -92,6 +93,7 @@ async function postJson(path, params, data) {
   if (!data || typeof data !== "object") {
     throw new SkillError("DATA_INVALID", "data 必须是对象");
   }
+  params.skill_name = skillName();
 
   const fullPath = `${path}?${querystring.stringify(params)}`;
   const jsonData = JSON.stringify(data);
