@@ -103,7 +103,7 @@ function parseArgs(args, schema) {
 /**
  * 根据 schema 生成帮助文本 (避免与解析逻辑漂移)
  * @param {Object} schema - 同 parseArgs 的 schema
- * @param {string} usage - 用法行, 如 "node src/xiaohongshu/search-cli.js <关键词> [选项]"
+ * @param {string} usage - 用法行, 如 "node src/douyin/search-cli.js <关键词> [选项]"
  * @param {string[]} [examples] - 示例数组
  * @returns {string} 帮助文本
  */

@@ -216,7 +216,7 @@ node src/douyin/hot-cli.js
 > **统一调用约定（重要）**
 >
 > - 必须在**技能根目录**执行。
-> - 需要被 AI / 程序解析时，加 `--json`：只输出纯 JSON 到 stdout，日志与 banner 走 stderr，便于稳定解析。
+> - 只输出纯 JSON 到 stdout，日志与 banner 走 stderr，便于稳定解析。
 > - 退出码约定：`0`=成功（含 empty），`1`=运行错误，`3`=auth_required（缺/错 token）。
 
 ### 9.1 搜索功能
