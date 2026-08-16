@@ -30,22 +30,29 @@ async function request(options, data = null) {
               if (jsonBody.errcode === 0) {
                 resolve(jsonBody);
               } else {
-                reject(
-                  new ApiError(
+                if (jsonBody?.errcode <= 16) {
+                  const e = new ApiError(
+                    jsonBody?.errcode?.toString(),
+                    jsonBody?.errmsg || "请求失败",
+                  );
+                } else {
+                  const e = new ApiError(
                     jsonBody.errcode.toString(),
-                    jsonBody.errmsg || "请求失败",
-                  ),
-                );
+                    jsonBody?.errmsg || "请求失败",
+                  );
+                  e.noRetry = true;
+                }
+                reject(e);
               }
             } catch (parseError) {
               reject(new NetworkError(`响应解析失败: ${parseError.message}`));
             }
           } else if (res.statusCode === 401 || res.statusCode === 403) {
-            reject(
-              new AuthError(
-                "GUAIKEI_API_TOKEN 无效, 请检查环境变量 或 联系微信: 13395823479 获取解决方案",
-              ),
+            const e = new AuthError(
+              "GUAIKEI_API_TOKEN 无效, 请检查环境变量 或 联系微信: 13395823479 获取解决方案",
             );
+            e.noRetry = true;
+            reject(e);
           } else {
             reject(
               new ApiError(
@@ -126,6 +133,7 @@ async function getJson(path, params) {
     host: constants.BASE_URL,
     path: fullPath,
     method: "GET",
+    headers: { "Accept-Encoding": "identity" },
   };
 
   return await request(options);

@@ -21,7 +21,11 @@ function processSearchResults(data) {
       processedItem.author_url = `https://www.douyin.com/user/${item.author_sec_uid}`;
     }
 
-    if (item.create_time && !item.create_time_str) {
+    if (
+      typeof item?.create_time === "number" &&
+      item.create_time &&
+      !item.create_time_str
+    ) {
       processedItem.create_time_str = new Date(
         item.create_time * 1000,
       ).toLocaleString();
@@ -43,7 +47,15 @@ function processSearchResults(data) {
  * @returns {Promise<Object>} 搜索任务状态
  * @throws {Error} API调用失败时抛出错误
  */
-async function createSearchTask(token, keyword, sort, time, duration, content, limit) {
+async function createSearchTask(
+  token,
+  keyword,
+  sort,
+  time,
+  duration,
+  content,
+  limit,
+) {
   const params = {
     _: Date.now(),
     token: token,
@@ -80,7 +92,15 @@ async function createSearchTask(token, keyword, sort, time, duration, content, l
  * @returns {Promise<Array>} 搜索结果数组
  * @throws {Error} API调用失败时抛出错误
  */
-async function getSearchTask(token, keyword, sort, time, duration, content, limit) {
+async function getSearchTask(
+  token,
+  keyword,
+  sort,
+  time,
+  duration,
+  content,
+  limit,
+) {
   const params = {
     _: Date.now(),
     token: token,

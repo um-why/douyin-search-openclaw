@@ -1,12 +1,12 @@
 ---
 name: douyin-search-keyword
-description: 抖音公开数据智能获取工具。支持抖音关键词搜索、抖人作品抓取、获取作品评论、实时热榜跟踪，适用于短视频营销、竞品分析、舆情分析和热点监控，助力爆款内容策划与流量追踪。
-version: 1.1.5
+description: 抖音公开数据智能获取工具。支持抖音关键词搜索、抖音博主作品抓取、抖音视频评论分析、抖音实时热榜查询。当用户需要搜抖音视频、查抖音热榜、看抖音评论、抓博主作品、做抖音竞品分析、短视频选题调研、舆情监控、热点追踪、爆款挖掘、抖音运营数据分析时使用。触发词：抖音搜索、抖音热榜、抖音评论、抖音作品、抖音竞品分析、抖音数据分析、短视频运营、抖音舆情监控、抖音热点。
 license: MIT
 metadata:
   enabled: true
   type: command
   runtime: "nodejs@16.14.0+"
+  version: 1.2.1
   requires:
     bins:
       - "node"
@@ -17,24 +17,31 @@ metadata:
   category:
     - "Data&APIs"
     - "内容创作"
+    - "数据分析"
+    - "商业运营"
+    - "办公效率"
   tags:
-    - "douyin"
     - "抖音"
+    - "douyin"
+    - "抖音搜索"
+    - "抖音热榜"
+    - "抖音评论"
+    - "抖音作品"
+    - "抖音竞品分析"
+    - "抖音数据分析"
+    - "短视频运营"
+    - "短视频"
+    - "舆情监控"
+    - "热点追踪"
+    - "爆款挖掘"
+    - "竞品分析"
+    - "营销分析"
     - "search"
-    - "搜索"
     - "数据挖掘"
     - "content-analysis"
-    - "营销分析"
-    - "数据分析"
     - "competitor-analysis"
-    - "竞品分析"
-    - "评论分析"
-    - "热点追踪"
     - "marketing"
     - "trend-tracking"
-    - "workflow"
-    - "insight"
-    - "automation"
   schemas:
     - name: "搜索入参"
       file: "assets/search_cli_req.schema.json"
@@ -51,95 +58,183 @@ metadata:
     - name: "评论出参"
       file: "assets/comment_cli_resp.schema.json"
   examples:
-    - name: 搜索 AI 教程视频
-      command: 'node src/douyin/search-cli.js --keyword "AI 教程"'
-      description: 用户说"搜索 AI 教程"时使用
-    - name: 找点赞最多的视频
-      command: 'node src/douyin/search-cli.js --keyword "AI" --sort 1'
-      description: 用户说"找最火的 AI 视频"时使用
-    - name: 最新发布的内容
-      command: 'node src/douyin/search-cli.js --keyword "AI 模型" --time 7'
-      description: 用户说"最新的 AI 模型视频"时使用
-    - name: 搜索半年内最新20条 AI 教程视频
-      command: 'node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --time 180 --limit 20'
-      description: 用户说"半年内最新 AI 教程视频"时使用
-    - name: 获取博主作品
-      command: 'node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"'
-      description: 用户说"查看这个博主的作品"时使用
-    - name: 获取视频评论
-      command: 'node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx"'
-      description: 用户说"看看这个视频的评论"时使用
-    - name: 获取热榜
-      command: "node src/douyin/hot-cli.js"
-      description: 用户说"抖音今天有什么热点"时使用
+    - "搜抖音里'AI 教程'最火的视频: node src/douyin/search-cli.js --keyword 'AI 教程' --sort 1"
+    - "看最近一周抖音上'AI 模型'最新的 20 条内容: node src/douyin/search-cli.js --keyword 'AI 模型' --sort 2 --time 7 --limit 20"
+    - "查抖音今天有什么热点/热搜榜: node src/douyin/hot-cli.js"
+    - "抓这个抖音博主最近 30 条作品: node src/douyin/post-cli.js --url 'https://www.douyin.com/user/MS4wLjABxxx' --limit 30"
+    - "看这条抖音视频的 40 条评论: node src/douyin/comment-cli.js --url 'https://www.douyin.com/video/xxx' --limit 40"
 ---
 
-# 🚀 抖音关键词搜索、竞品分析、舆情监控与热点跟踪工具 (Douyin Search & Analytics)
+# 🚀 抖音关键词搜索、竞品分析、舆情监控与热榜跟踪工具 (Douyin Search & Analytics)
 
-> **💡一句话价值**：一键抓取抖音公开视频/作者/评论/热榜数据，帮你做爆款选题、竞品分析、舆情监控、热点追踪。
->
+## 1. 🛠️ 技能概述
+
+抖音公开数据获取与智能分析工具。支持**关键词搜索排序**、**抖人作品抓取**、**视频评论分析**、**实时热榜获取**，适用于短视频选题、竞品监控、舆情分析、热点追踪，助力爆款内容策划与流量运营。
+
 > **🔥核心优势**
 >
-> - 安全: 无需登录你的抖音账号，不担心风控风险 / 封号问题
-> - 强大: 一次可获取最多1W条数据，技能内置批量操作，使用简单方便
-> - 全面: 各功能出参数据全面，可见及有价值数据都会返回
-> - 灵活: 支持多维度筛选、批量操作
-> - 轻量: 无需部署服务，Node.js 一键运行
-> - 低耗: 日志自动归档，适配营销报告 / 内容策划场景 ，便于数据二次分析
+> - **安全**：无需登录抖音账号，无风控 / 封号风险
+> - **强大**：单次最多可获取 1W 条数据，内置批量与多维筛选
+> - **全面**：出参覆盖作者、互动、标签、链接等可用数据及有价值数据都会返回
+> - **轻量**：无需部署服务，Node.js 一键运行，仅依赖内置模块
+> - **友好**：stdout 纯 JSON、日志走 stderr，便于 AI 稳定解析与二次分析
 
-## 1. ✅ 我能帮你解决什么（10 秒判断）
+## 2. ✅ 什么时候应该调用这个技能
 
-- 🔍 按关键词搜抖音视频（点赞/最新排序）：找爆款选题、分析高赞视频规律
-- 🦸 竞品监控：批量抓取对标账号所有公开作品数据，分析内容策略
-- 💬 评论分析：获取抖音评论详情，分析舆情方向
-- 📡 热点追流：实时获取抖音热榜，抢占流量风口
-- 📊 数据导出：自动生成JSON日志，方便对比分析和使用
+🎯 在以下场景优先调用：
 
-## 2. 🚀 最快上手（复制就能跑，30 秒出结果）
+- 用户明确要查 **抖音** 的公开内容（视频 / 图文 / 作者 / 评论 / 热榜）。
+- 用户要做 **关键词搜索**、**爆款选题调研**、**竞品监控**、**评论洞察**、**博主作品追踪**、**热点追流**。
+- 用户提供了抖音关键词、视频链接、博主主页链接，希望拿到结构化数据。
+- 用户后续还要基于结果做总结、对比、筛选、报告生成。
 
-> **Note:** 请先通过微信 <13395823479> 申请TOKEN ，或访问[抖音搜索技能官网](https://www.guaikei.com)开通TOKEN，配置环境变量 `GUAIKEI_API_TOKEN` 后才能正常运行。
+### 🚫 不要在这些场景误调用
 
-### 2.1 🔎 抖音关键词搜索（最简单）
+- 用户只是想写文案、改标题、生成脚本，但**并未要求查询抖音公开数据**。
+- 用户查询的平台**不是抖音**（如小红书、B站、微博、公众号）——请路由到对应技能。
+- 用户要求获取**私密 / 登录态 / 隐藏**数据或非公开信息。
+- 用户既没给关键词，也没给可识别的抖音链接，且目标仍不明确——先追问。
+
+> 意图不明确时先追问，不要盲目执行命令。
+
+## 3. 🚧 能力边界
+
+本技能当前覆盖 4 类能力：
+
+1. 🔍 **关键词搜索**：按关键词搜抖音公开视频 / 图文，支持排序、时间、时长、类型筛选。
+2. 🦸 **博主作品**：按主页 URL 或 sec_uid 获取作者公开作品列表。
+3. 💬 **评论分析**：按视频 / 图文 URL 或 aweme_id 获取评论数据。
+4. 📡 **实时热榜**：获取抖音热搜榜单。
+
+🛑 本技能不需要、不负责：
+
+- 登录抖音账号、发布 / 点赞 / 评论 / 关注等写操作
+- 获取私密或非公开数据
+- 代替用户做营销策略判断
+
+它的职责是**先把数据拿回来**，再交给上层流程去分析、整理或生成结论。
+
+## 4. 🔀 调用路由规则
+
+> **Note:** 请先通过 [抖音数据获取技能官网](https://www.guaikei.com) 开通 TOKEN，配置环境变量 `GUAIKEI_API_TOKEN` 后才能正常运行。
+
+根据用户输入的关键信号，路由到对应脚本：
+
+| 用户输入 / 意图             | 调用脚本                    | 必填输入             | 典型结果                            |
+| --------------------------- | --------------------------- | -------------------- | ----------------------------------- |
+| 搜某个关键词的抖音内容      | `src/douyin/search-cli.js`  | `keyword`            | 视频/图文列表、作者、互动、跳转链接 |
+| 看抖音今天有什么热点 / 热搜 | `src/douyin/hot-cli.js`     | 无                   | 热榜词条、热度、搜索量              |
+| 看某个博主最近发了什么      | `src/douyin/post-cli.js`    | 主页 URL 或 sec_uid  | 博主公开作品列表                    |
+| 看某条视频 / 图文的评论     | `src/douyin/comment-cli.js` | 视频 URL 或 aweme_id | 评论内容、评论者、互动              |
+
+### 🧭 路由细则（消歧义，很重要）
+
+- **热搜 / 热点 / 榜单 / 今天什么火** → `hot-cli.js`
+- **搜索 / 搜一下 / 找 + 关键词**（无"评论"词）→ `search-cli.js`
+- **评论 / 留言 / 弹幕** → `comment-cli.js`（必须出现"评论"类词才归此类）
+- **作品 / 视频(指博主内容) / 主页 / 账号 / 博主** → `post-cli.js`
+
+> ⚠️ 单独出现"视频"二字时，**不要默认归到 post-cli**：
+>
+> - 同时有"关键词"且无"评论" → 视为 `search`（用户想搜某个视频）。
+> - 明确"这个视频的评论 / 留言" → `comment`。
+> - 仅当"作品 / 主页 / 账号 / 博主"出现时才用 `post`。
+
+## 5. 🧺 输入收集规则
+
+执行前先收集足够输入，避免无效调用。
+
+### 5.1 🔍 关键词搜索（search-cli）
+
+至少要确认：`keyword`（2-50 字符）。可选：
+
+- `sort`：0 综合 / 1 最多点赞 / 2 最新发布
+- `time`：0 全部 / 1 一天内 / 7 七天内 / 180 半年内
+- `duration`：0 不限 / 1 1分钟内 / 2 1-5分钟 / 3 5分钟以上
+- `content`：0 不限 / 1 视频 / 2 图文
+- `limit`：1-10000，默认 10
+
+### 5.2 📡 博主作品（post-cli）
+
+至少要确认：`url`（主页 URL 或 sec_uid）。可选：`limit`（1-10000，默认 10）。
+适用链接：`https://www.douyin.com/user/MS4wLjABxxx`、`https://v.douyin.com/xxx`、或直接使用 sec_uid。
+
+### 5.3 💬 评论分析（comment-cli）
+
+至少要确认：`url`（视频 / 图文 URL 或 aweme_id）。可选：`limit`（1-10000，默认 10）。
+适用链接：`https://www.douyin.com/video/xxx`、`https://www.douyin.com/note/xxx`、或直接使用 aweme_id。
+
+## 6. 📜 执行原则
+
+### 6.1 ❓ 缺少必要输入时
+
+- 没有关键词：先追问关键词。
+- 没有链接：先追问视频 / 主页链接或 ID。
+- 链接类型不明确：先确认这是视频还是博主主页。
+- 没有 `GUAIKEI_API_TOKEN`：提醒用户先配置环境变量，再执行（退出码 3 = auth_required）。
+
+### 6.2 📤 输出原则
+
+执行完成后，优先返回：本次目标、关键参数、结构化 JSON 结果，必要时再补一小段摘要。
+适合衔接的后续动作：选题汇总、高赞对比、评论观点聚类、竞品内容风格总结、博主发文节奏分析、报告与表格生成。
+
+### 6.3 🩹 失败处理原则
+
+出现以下情况，应明确向用户说明原因，**不要编造数据，不要把空结果当成成功结论**：
+
+- token 未配置或无效（退出码 3）
+- 链接不合法或类型错误
+- 搜索结果为空（退出码 0，正常空结果）
+- 接口返回业务异常（退出码 1）
+- 网络 / 超时问题（退出码 1）
+
+## 7. 💡 推荐调用方式（可直接复制）
+
+### 7.1 🔎 关键词搜索
 
 ```bash
-node src/douyin/search-cli.js --keyword "AI"
+node src/douyin/search-cli.js --keyword "AI 教程"
+node src/douyin/search-cli.js --keyword "露营装备" --sort 1 --time 7 --limit 20
 ```
 
-### 2.2 🔎 按点赞排序找爆款（最常用）
-
-```bash
-node src/douyin/search-cli.js --keyword "AI" --sort 1
-```
-
-### 2.3 🦸 抓取抖音抖人全部作品
-
-```bash
-node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"
-```
-
-### 2.4 💬 获取抖音作品评论内容
-
-```bash
-node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx"
-```
-
-### 2.5 📡 获取抖音实时热榜
+### 7.2 📡 实时热榜
 
 ```bash
 node src/douyin/hot-cli.js
 ```
 
-## 3. 📌 适用场景（我该不该用？）
+### 7.3 🦸 博主作品
 
-- 你需要做短视频选题 → 关键词搜索 + 点赞排序
-- 你需要模仿爆款文案 → 查看高赞视频详情
-- 你需要监控竞品账号 → 批量抓取对方作品
-- 你需要分析内容舆情 → 获取抖音评论详情
-- 你需要快速追热点 → 实时获取抖音热榜
-- 你需要做营销报告 → 导出结构化数据
+```bash
+node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx" --limit 50
+```
 
-## 4. 🔧 参数详解表
+### 7.4 💬 评论分析
 
+```bash
+node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx" --limit 100
+```
+
+## 8. 🤖 对 AI / Agent 更友好的触发方式（提升识别准确率）
+
+优先采用以下自然语言触发，减少误路由：
+
+- "帮我搜一下抖音里'AI 教程'最火的视频"
+- "看最近一周抖音上'露营装备'最新的内容"
+- "抖音今天有什么热点 / 热搜榜"
+- "看看这个抖音博主最近 50 条作品都在发什么"
+- "分析这条抖音视频评论区的主要观点"
+
+若用户表达笼统（如"帮我做抖音竞品分析"），优先拆成两步：① 确认关键词 / 竞品链接 / 博主主页；② 再调用对应脚本拿回数据。
+
+## 9. 🔧 自然语言指令映射
+
+> **统一调用约定（重要）**
+>
+> - 必须在**技能根目录**执行。
+> - 只输出纯 JSON 到 stdout，日志与 banner 走 stderr，便于稳定解析。
+> - 退出码约定：`0`=成功（含 empty），`1`=运行错误，`3`=auth_required（缺/错 token）。
+>
 > 详细选项参数说明， 可参阅 [完整选项说明](references/options.md)
 >
 > LLM理解技能的详细选项，可参阅技能 `assets` 目录中文件，其遵循 JSON Schema draft-07 版本规范。
@@ -151,106 +246,6 @@ node src/douyin/hot-cli.js
 > - 抖音评论获取，[入参规范](assets/comment_cli_req.schema.json)
 > - 抖音评论获取，[出参规范](assets/comment_cli_resp.schema.json)
 > - 抖音热榜获取，[出参规范](assets/hot_cli_resp.schema.json)
-
-## 5. ⚠️ 重要限制（不踩坑）
-
-- 仅抓取抖音公开数据，不支持私密 / 隐藏内容
-- 需要配置 GUAIKEI_API_TOKEN 才能正常运行
-- 数据仅限个人 / 团队内部使用，禁止违规分发
-
-## 6. ❓ 常见问题（秒解决）
-
-> **💡Q：运行报错，提示无权限？**
->
-> A：配置环境变量：
->
-> - Windows: `set GUAIKEI_API_TOKEN=你的TOKEN`
-> - Linux/MacOS: `export GUAIKEI_API_TOKEN=你的TOKEN`
-> - 私有TOKEN申请后请留意使用安全，避免泄露给他人
->
-> **💡Q：搜索结果为空？**
->
-> A：换常用关键词，或把 `--time` 改为 0（全部时间）
->
-> **💡Q：输出文件在哪里？**
->
-> A：自动保存在技能目录的 `logs` 文件夹下
->
-> - 搜索任务日志: 默认保存为「时间戳\_关键词\_排序\_时间\_时长\_类型\_search.json」
-> - 抖人作品获取日志: 默认保存为「时间戳\_(抖人sec_uid)\_post.json」
-> - 抖音评论获取日志: 默认保存为「时间戳\_(视频aweme_id)\_comment.json」
->
-> **💡Q：支持 Windows/Mac/Linux 吗？**
->
-> A：全平台支持，仅需安装 Node.js 环境
-
-## 7. 📞 帮助与支持
-
-- 联系微信 13395823479（备注抖音技能）开通TOKEN或获得技能使用支持；
-- 或通过 [抖音关键词搜索技能官网](https://www.guaikei.com) 自助开通TOKEN或查阅使用帮助。
-
-> 🆕 [更新日志](references/changelog.md) 可查阅这里
-
-## 8. 🛑 错误处理与重试策略（重要）
-
-### 8.1 遇到以下错误，立即停止操作并向用户报告
-
-- **权限错误**（AUTH_ERROR）：TOKEN 无效或已过期，请提示用户重新配置
-- **API 次数超限**：提示用户联系客服开通更高额度
-- **网络错误连续 3 次失败**：提示用户检查网络连接
-
-### 8.2 禁止行为
-
-- ❌ 不要在收到 AUTH_ERROR 后继续重试
-- ❌ 不要在 API 返回明确错误码后尝试修改参数重试
-- ❌ 不要在用户未明确要求的情况下自动调整搜索条件
-
-### 8.3 正确做法
-
-- ✅ 遇到错误，立即向用户展示错误信息
-- ✅ 询问用户是否需要调整参数或重新尝试
-- ✅ 对于网络超时，可以尝试最多 3 次之后停止
-
-## 9. 💬 自然语言指令映射（AI 快速参考）
-
-> **统一调用约定（重要）**
->
-> - 必须在**技能根目录**执行。
-> - 只输出纯 JSON 到 stdout，日志与 banner 走 stderr，便于稳定解析。
-> - 退出码约定：`0`=成功（含 empty），`1`=运行错误，`3`=auth_required（缺/错 token）。
-
-### 9.1 搜索功能
-
-| 用户口语化指令                    | 对应命令                                                                           | 参数推导                     |
-| --------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------- |
-| "搜索 / 搜一下 / 找 AI 相关视频"  | `node src/douyin/search-cli.js --keyword "AI"`                                     | 带关键词即搜索               |
-| "找点赞最多的 / 最火的 AI 视频"   | `node src/douyin/search-cli.js --keyword "AI" --sort 1`                            | 最火/点赞最多 → sort=1       |
-| "最新的 AI 教程，要 20 条"        | `node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --limit 20`            | 最新 → sort=2；数量 → limit  |
-| "近一周最火的短视频"              | `node src/douyin/search-cli.js --keyword "短视频" --time 7 --sort 1`               | 一周 → time=7；最火 → sort=1 |
-| "半年内最新 20 条 AI 教程"        | `node src/douyin/search-cli.js --keyword "AI 教程" --sort 2 --time 180 --limit 20` | 半年 → time=180              |
-| "减肥视频，只要 1 分钟以下的"     | `node src/douyin/search-cli.js --keyword "减肥" --duration 1`                      | 见下方 duration 表           |
-| "AI 模型，5 分钟以上的，前 50 条" | `node src/douyin/search-cli.js --keyword "AI 模型" --duration 3 --limit 50`        | 5分钟以上 → duration=3       |
-
-### 9.2 竞品监控
-
-| 用户口语化指令                  | 对应命令                                                                      | 参数推导              |
-| ------------------------------- | ----------------------------------------------------------------------------- | --------------------- |
-| "查看这个博主的所有作品 / 主页" | `node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"` | 作品/主页/账号 → post |
-| "抓取 MS4wLjABxxx 的作品"       | `node src/douyin/post-cli.js --url "MS4wLjABxxx"`                             | sec_uid 直接可用      |
-| "获取他最近 50 条视频"          | `node src/douyin/post-cli.js --url "xxx" --limit 50`                          | 数量 → limit          |
-
-### 9.3 评论分析
-
-| 用户口语化指令              | 对应命令                                                                  | 参数推导            |
-| --------------------------- | ------------------------------------------------------------------------- | ------------------- |
-| "看看这个视频的评论 / 留言" | `node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx"` | 评论/留言 → comment |
-| "获取这条视频的 100 条评论" | `node src/douyin/comment-cli.js --url "xxx" --limit 100`                  | 数量 → limit        |
-
-### 9.4 热榜
-
-| 用户口语化指令                           | 对应命令                     |
-| ---------------------------------------- | ---------------------------- |
-| "抖音今天有什么热点 / 热搜榜 / 热点榜单" | `node src/douyin/hot-cli.js` |
 
 ## 10. 🧠 AI 意图识别规则
 
@@ -302,3 +297,31 @@ node src/douyin/hot-cli.js
 ### 10.3 默认值
 
 - sort: 0（综合）｜time: 0（全部）｜duration: 0（不限）｜limit: 10
+
+## 11. 📦 环境与依赖
+
+- 运行环境：Node.js 16.14.0+
+- 系统兼容：Windows / Linux / macOS
+- 必需环境变量：`GUAIKEI_API_TOKEN`
+- 官方入口：<https://www.guaikei.com>
+- 完整选项说明：见 `references/options.md`
+- 更新记录：见 `references/changelog.md`
+
+## 12. 🛡️ 合规与使用限制
+
+- 仅处理抖音**公开数据**，不支持私密 / 隐藏 / 登录态数据。
+- 数据仅限个人 / 团队内部分析使用，禁止违规分发。
+- 本技能依赖第三方 API 服务（guaikei.com），使用前请确认数据外发与授权范围。
+
+## 13. 🎧 支持信息
+
+- 官网：[抖音数据获取技能官网](https://www.guaikei.com)（自助开通 TOKEN / 查阅帮助）
+- 微信：`13395823479`（备注：抖音技能）获取支持
+
+## 14. ❓ 常见问题
+
+- **没结果**：放宽关键词、减少限定（如 `--time 0`），或换成更贴近用户表达的词。
+- **结果太多**：补场景、人群、品牌、时间范围或账号名。
+- **调用失败**：先确认 `GUAIKEI_API_TOKEN` 已配置且有效（退出码 3 即 token 问题）。
+- **担心账号安全**：这是只读能力，不登录、不发帖、不点赞、不评论。
+- **想继续分析**：把最相关的 1-3 条结果发回来，继续缩小范围。

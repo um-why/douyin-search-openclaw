@@ -13,7 +13,7 @@ async function main() {
   utils.printBanner();
 
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") process.exit(1);
+  if (tokenValue === "") process.exit(3);
   let hotTask = null;
   try {
     hotTask = await hot.getHotTask(tokenValue);
@@ -34,8 +34,10 @@ async function main() {
       },
       results: null,
     };
-    console.log(JSON.stringify(errorOutput, null, 2));
-    process.exit(1);
+    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
+      process.exit(3),
+    );
+    return;
   }
 
   if (!hotTask || !Array.isArray(hotTask) || hotTask.length === 0) {
@@ -55,13 +57,16 @@ async function main() {
       },
       results: null,
     };
-    console.log(JSON.stringify(emptyOutput, null, 2));
-    process.exit(1);
+    process.stdout.write(JSON.stringify(emptyOutput, null, 2) + "\n", () =>
+      process.exit(0),
+    );
+    return;
   }
 
   // 输出热榜结果
   const finalOutput = {
     status: "success",
+    error_code: "OK",
     message: "获取抖音热榜任务完成",
     total: hotTask.length,
     timestamp: new Date().toLocaleString(),

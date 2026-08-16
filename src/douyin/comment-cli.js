@@ -72,16 +72,10 @@ async function main() {
   utils.printInfo(`规范后的URL: ${url}`);
   limit = validator.optionFormat(limit);
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") process.exit(1);
+  if (tokenValue === "") process.exit(3);
   let commentTask = null;
   try {
     const status = await comment.createCommentTask(tokenValue, url, limit);
-    if (!status || status.errcode !== 0) {
-      throw new ApiError(
-        status?.errcode || "UNKNOWN",
-        `获取评论任务创建时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
-      );
-    }
     utils.printSuccess(`获取评论任务创建成功, 正在获取评论中...`);
 
     commentTask = await comment.getCommentTask(tokenValue, url, limit);
@@ -104,8 +98,10 @@ async function main() {
       },
       results: null,
     };
-    console.log(JSON.stringify(errorOutput, null, 2));
-    process.exit(1);
+    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
+      process.exit(3),
+    );
+    return;
   }
 
   if (!commentTask || !Array.isArray(commentTask) || commentTask.length === 0) {
@@ -127,8 +123,10 @@ async function main() {
       },
       results: null,
     };
-    console.log(JSON.stringify(emptyOutput, null, 2));
-    process.exit(1);
+    process.stdout.write(JSON.stringify(emptyOutput, null, 2) + "\n", () =>
+      process.exit(0),
+    );
+    return;
   }
 
   // 输出评论结果

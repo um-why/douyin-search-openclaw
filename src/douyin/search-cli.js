@@ -72,7 +72,6 @@ function printHelp() {
     ]) +
       "\n\n注意:\n" +
       "  - 关键词建议 2-50 个汉字，避免特殊符号 \n" +
-      "  - 关键词建议 2-50 个汉字，避免特殊符号 \n" +
       "  - 所有参数都会自动清洗和验证",
   );
 }
@@ -105,11 +104,11 @@ async function main() {
 
   utils.printBanner();
   utils.printInfo(`原始关键词: ${keyword}`);
+  keyword = validator.cleanKeyword(keyword);
   const isRight = validator.isKeywordValid(keyword);
   if (!isRight) {
     return;
   }
-  keyword = validator.cleanKeyword(keyword);
   utils.printInfo(`清洗后关键词: ${keyword}`);
   [sort, time, duration, content, limit] = validator.optionFormat(
     sort,
@@ -123,7 +122,7 @@ async function main() {
   );
 
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") process.exit(1);
+  if (tokenValue === "") process.exit(3);
   let searchTask = null;
   try {
     const status = await search.createSearchTask(
@@ -135,12 +134,6 @@ async function main() {
       content,
       limit,
     );
-    if (!status || status.errcode !== 0) {
-      throw new ApiError(
-        status?.errcode || "UNKNOWN",
-        `搜索任务创建失败时, 遇到未知错误, 请反馈给开发者 ${status} - ${Date.now()}`,
-      );
-    }
     utils.printSuccess(`搜索任务创建成功, 正在搜索中...`);
 
     searchTask = await search.getSearchTask(
@@ -175,8 +168,10 @@ async function main() {
       },
       results: null,
     };
-    console.log(JSON.stringify(errorOutput, null, 2));
-    process.exit(1);
+    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
+      process.exit(3),
+    );
+    return;
   }
 
   if (!searchTask || !Array.isArray(searchTask) || searchTask.length === 0) {
@@ -202,8 +197,10 @@ async function main() {
       },
       results: null,
     };
-    console.log(JSON.stringify(emptyOutput, null, 2));
-    process.exit(1);
+    process.stdout.write(JSON.stringify(emptyOutput, null, 2) + "\n", () =>
+      process.exit(0),
+    );
+    return;
   }
 
   // 输出搜索结果
