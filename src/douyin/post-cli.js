@@ -16,7 +16,7 @@ const SCHEMA = {
       key: "url",
       type: "string",
       required: true,
-      desc: "抖人主页URL或sec_uid",
+      desc: "抖音博主主页URL或sec_uid",
     },
     "--limit": {
       alias: "-l",

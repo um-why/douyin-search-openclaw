@@ -1,7 +1,7 @@
 const utils = require("../utils/utils");
 
 /**
- * 规范抖音抖人主页URL
+ * 规范抖音博主主页URL
  * @param {string} url - 输入的URL
  * @returns {string} 规范后的URL
  */

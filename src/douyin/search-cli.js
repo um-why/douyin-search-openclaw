@@ -107,6 +107,30 @@ async function main() {
   keyword = validator.cleanKeyword(keyword);
   const isRight = validator.isKeywordValid(keyword);
   if (!isRight) {
+    const errorOutput = {
+      status: "error",
+      error_code: "INVALID_KEYWORD",
+      message: "关键词不合法：需 2–50 字符且不含特殊符号/http 链接",
+      timestamp: new Date().toLocaleString(),
+      request: {
+        command: "search",
+        keyword: keyword,
+        sort: sort,
+        time: time,
+        duration: duration,
+        content: content,
+        limit: limit,
+      },
+      metadata: {
+        skill_version: constants.VERSION,
+        runtime_version: process.versions.node,
+        execution_time: Date.now() - startTime,
+      },
+      results: null,
+    };
+    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
+      process.exit(1),
+    );
     return;
   }
   utils.printInfo(`清洗后关键词: ${keyword}`);

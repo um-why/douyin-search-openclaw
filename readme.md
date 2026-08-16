@@ -1,4 +1,3 @@
-
 # 🚀 抖音关键词搜索、竞品分析、舆情监控与热榜跟踪工具 (Douyin Search & Analytics)
 
 > **💡一句话价值**：一键抓取抖音公开视频/作者/评论/热榜数据，帮你做爆款选题、竞品分析、舆情监控、热点追踪。
@@ -36,7 +35,7 @@ node src/douyin/search-cli.js --keyword "AI"
 node src/douyin/search-cli.js --keyword "AI" --sort 1
 ```
 
-### 2.3 🦸 抓取抖音抖人全部作品
+### 2.3 🦸 抓取抖音博主全部作品
 
 ```bash
 node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx"
@@ -71,8 +70,8 @@ node src/douyin/hot-cli.js
 >
 > - 抖音关键词搜索，[入参规范](assets/search_cli_req.schema.json)
 > - 抖音关键词搜索，[出参规范](assets/search_cli_resp.schema.json)
-> - 抖音抖人作品获取，[入参规范](assets/post_cli_req.schema.json)
-> - 抖音抖人作品获取，[出参规范](assets/post_cli_resp.schema.json)
+> - 抖音博主作品获取，[入参规范](assets/post_cli_req.schema.json)
+> - 抖音博主作品获取，[出参规范](assets/post_cli_resp.schema.json)
 > - 抖音评论获取，[入参规范](assets/comment_cli_req.schema.json)
 > - 抖音评论获取，[出参规范](assets/comment_cli_resp.schema.json)
 > - 抖音热榜获取，[出参规范](assets/hot_cli_resp.schema.json)
@@ -102,7 +101,7 @@ node src/douyin/hot-cli.js
 > A：自动保存在技能目录的 `logs` 文件夹下
 >
 > - 搜索任务日志: 默认保存为「时间戳\_关键词\_排序\_时间\_时长\_类型\_search.json」
-> - 抖人作品获取日志: 默认保存为「时间戳\_(抖人sec_uid)\_post.json」
+> - 抖音博主作品获取日志: 默认保存为「时间戳\_(博主sec_uid)\_post.json」
 > - 抖音评论获取日志: 默认保存为「时间戳\_(视频aweme_id)\_comment.json」
 >
 > **💡Q：支持 Windows/Mac/Linux 吗？**

@@ -9,16 +9,10 @@ const utils = require("./utils");
  * @returns {boolean} 是否有效
  */
 function isValidToken(token) {
-  if (!token || typeof token !== "string") {
-    return false;
-  }
-
-  if (token.length < 16 || token.length > 128) {
-    return false;
-  }
-
-  const hexPattern = /^[0-9a-zA-Z]{32}$/;
-  return hexPattern.test(token);
+  if (!token || typeof token !== "string") return false;
+  if (token.length < 16 || token.length > 256) return false;
+  if (!/^[0-9a-zA-Z\_-]+$/.test(token)) return false;
+  return true;
 }
 
 /**
