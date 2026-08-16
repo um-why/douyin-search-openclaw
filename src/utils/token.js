@@ -13,7 +13,7 @@ function isValidToken(token) {
     return false;
   }
 
-  if (token.length !== 32) {
+  if (token.length < 16 || token.length > 128) {
     return false;
   }
 

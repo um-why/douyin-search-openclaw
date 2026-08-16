@@ -98,8 +98,9 @@ async function main() {
       },
       results: null,
     };
+    const exitCode = error.name === "AuthError" ? 3 : 1;
     process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
-      process.exit(3),
+      process.exit(exitCode),
     );
     return;
   }
@@ -153,9 +154,8 @@ async function main() {
   );
 
   url = url.replace(/[^a-zA-Z0-9_-]/g, "");
-  url = url.replace("httpswwwdouyincom", "");
-  url = url.replace("note", "");
-  url = url.replace("video", "");
+  url = url.replace("httpswwwdouyincomvideo", "");
+  url = url.replace("httpswwwdouyincomnote", "");
   await log.taskWrite(
     `${startTime}_${url}_comment.json`,
     JSON.stringify(finalOutput, null, 2),

@@ -157,12 +157,12 @@ metadata:
 ### 5.2 📡 博主作品（post-cli）
 
 至少要确认：`url`（主页 URL 或 sec_uid）。可选：`limit`（1-10000，默认 10）。
-适用链接：`https://www.douyin.com/user/MS4wLjABxxx`、`https://v.douyin.com/xxx`、或直接使用 sec_uid。
+适用链接：`https://www.douyin.com/user/MS4wLjABxxx`、`https://v.douyin.com/xxx`、或直接使用 `sec_uid`。
 
 ### 5.3 💬 评论分析（comment-cli）
 
 至少要确认：`url`（视频 / 图文 URL 或 aweme_id）。可选：`limit`（1-10000，默认 10）。
-适用链接：`https://www.douyin.com/video/xxx`、`https://www.douyin.com/note/xxx`、或直接使用 aweme_id。
+适用链接：`https://www.douyin.com/video/xxx`、`https://www.douyin.com/note/xxx`、或直接使用 `aweme_id`。
 
 ## 6. 📜 执行原则
 
@@ -188,13 +188,13 @@ metadata:
 - 接口返回业务异常（退出码 1）
 - 网络 / 超时问题（退出码 1）
 
-## 7. 💡 推荐调用方式（可直接复制）
+## 7. 💡 推荐调用方式
 
 ### 7.1 🔎 关键词搜索
 
 ```bash
 node src/douyin/search-cli.js --keyword "AI 教程"
-node src/douyin/search-cli.js --keyword "露营装备" --sort 1 --time 7 --limit 20
+node src/douyin/search-cli.js --keyword "AI模型" --sort 1 --time 7 --limit 20
 ```
 
 ### 7.2 📡 实时热榜
@@ -220,7 +220,7 @@ node src/douyin/comment-cli.js --url "https://www.douyin.com/video/xxx" --limit 
 优先采用以下自然语言触发，减少误路由：
 
 - "帮我搜一下抖音里'AI 教程'最火的视频"
-- "看最近一周抖音上'露营装备'最新的内容"
+- "看最近一周抖音上'AI模型'最新的内容"
 - "抖音今天有什么热点 / 热搜榜"
 - "看看这个抖音博主最近 50 条作品都在发什么"
 - "分析这条抖音视频评论区的主要观点"

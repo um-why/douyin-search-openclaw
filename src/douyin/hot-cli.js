@@ -34,8 +34,9 @@ async function main() {
       },
       results: null,
     };
+    const exitCode = error.name === "AuthError" ? 3 : 1;
     process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
-      process.exit(3),
+      process.exit(exitCode),
     );
     return;
   }
