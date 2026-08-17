@@ -30,13 +30,14 @@ async function request(options, data = null) {
               if (jsonBody.errcode === 0) {
                 resolve(jsonBody);
               } else {
+                let e;
                 if (jsonBody?.errcode <= 16) {
-                  const e = new ApiError(
+                  e = new ApiError(
                     jsonBody?.errcode?.toString(),
                     jsonBody?.errmsg || "请求失败",
                   );
                 } else {
-                  const e = new ApiError(
+                  e = new ApiError(
                     jsonBody.errcode.toString(),
                     jsonBody?.errmsg || "请求失败",
                   );

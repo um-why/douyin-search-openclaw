@@ -6,7 +6,7 @@ metadata:
   enabled: true
   type: command
   runtime: "nodejs@16.14.0+"
-  version: 1.2.1
+  version: 1.2.2
   requires:
     bins:
       - "node"

@@ -31,5 +31,5 @@ module.exports = {
   /**
    * 技能版本号
    */
-  VERSION: "1.2.1",
+  VERSION: "1.2.2",
 };

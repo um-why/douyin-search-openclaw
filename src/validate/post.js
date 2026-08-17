@@ -12,7 +12,7 @@ function douyinUserUrl(url) {
   } else if (url.includes("https://v.douyin.com/")) {
     url = url.substring(url.indexOf("https://v.douyin.com/"));
   } else {
-    url = url.replace(/[^a-zA-Z0-9_ -]/g, "");
+    url = url.replace(/[^a-zA-Z0-9_. -]/g, "");
     url = "https://www.douyin.com/user/" + url;
   }
   if (url.includes(" ")) {
