@@ -56,10 +56,7 @@ async function createSearchTask(
   content,
   limit,
 ) {
-  const params = {
-    _: Date.now(),
-    token: token,
-  };
+  const params = { _: Date.now() };
 
   const data = {
     keyword,
@@ -75,6 +72,7 @@ async function createSearchTask(
     "/api/douyin/general-search/keyword",
     params,
     data,
+    token,
     constants.CREATE_MAX_ATTEMPTS,
     "创建任务",
   );
@@ -103,7 +101,6 @@ async function getSearchTask(
 ) {
   const params = {
     _: Date.now(),
-    token: token,
     keyword: keyword,
     sort_type: sort,
     publish_time: time,
@@ -117,6 +114,7 @@ async function getSearchTask(
     "/api/douyin/general-search/info",
     params,
     null,
+    token,
     constants.QUERY_MAX_ATTEMPTS,
     "查询任务",
   );

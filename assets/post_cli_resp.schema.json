@@ -14,7 +14,7 @@
         },
         "caption": {
             "type": "string",
-            "description": "抖音视频描述"
+            "description": "抖音视频标题"
         },
         "create_time": {
             "type": "number",
@@ -83,6 +83,14 @@
         "share_url": {
             "type": "string",
             "description": "抖音视频分享URL"
+        },
+        "suggest_words": {
+            "type": "array",
+            "description": "抖音视频小蓝词",
+            "items": {
+                "type": "string",
+                "description": "抖音视频小蓝词"
+            }
         }
     }
 }

@@ -1,30 +1,43 @@
 const utils = require("../utils/utils");
 
-/**
- * 规范抖音博主主页URL
- * @param {string} url - 输入的URL
- * @returns {string} 规范后的URL
- */
+const DOUYIN_URL_RE =
+  /(?:https?:\/\/)?(?:www\.|v\.)?(?:douyin\.com|iesdouyin\.com)\/[^\s"'<>`\u4e00-\u9fff，。！？、；：（）【】]+/i;
+
+function extractDouyinUrl(raw) {
+  if (typeof raw !== "string") return null;
+  const m = raw.match(DOUYIN_URL_RE);
+  if (!m) return null;
+
+  let url = m[0];
+  url = url.split("?")[0].split("#")[0];
+  url = url.replace(/[\/.,;:!?"'，。！？；：、）】》]+$/g, "");
+  return url || null;
+}
+
 function douyinUserUrl(url) {
-  url = url.trim();
-  if (url.includes("https://www.douyin.com/user/")) {
-    url = url.substring(url.indexOf("https://www.douyin.com/user/"));
-  } else if (url.includes("https://v.douyin.com/")) {
-    url = url.substring(url.indexOf("https://v.douyin.com/"));
-  } else {
-    url = url.replace(/[^a-zA-Z0-9_. -]/g, "");
-    url = "https://www.douyin.com/user/" + url;
+  const extracted = extractDouyinUrl(url);
+  if (extracted) {
+    if (/\/user\//i.test(extracted) || /v\.douyin\.com\//i.test(extracted)) {
+      return extracted;
+    }
+    return null;
   }
-  if (url.includes(" ")) {
-    url = url.substring(0, url.indexOf(" "));
+
+  const s = String(url ?? "")
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!s) return null;
+  if (!/^MS4wLj/.test(s) && s.length < 20) {
+    return null;
   }
-  return url;
+  return s;
 }
 
 function optionFormat(limit) {
   limit = Number(limit);
-  if (limit < 1 || limit > 10000) {
-    utils.printError("获取的作品数量必须在1-10000之间");
+  if (!Number.isFinite(limit)) limit = 10;
+  if (limit < 0 || limit > 10000) {
+    utils.printError("获取的作品数量必须在0-10000之间");
     limit = 10;
   }
   return limit;

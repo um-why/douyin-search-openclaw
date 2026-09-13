@@ -31,7 +31,7 @@ async function request(options, data = null) {
                 resolve(jsonBody);
               } else {
                 let e;
-                if (jsonBody?.errcode <= 16) {
+                if (jsonBody?.errcode < 10) {
                   e = new ApiError(
                     jsonBody?.errcode?.toString(),
                     jsonBody?.errmsg || "请求失败",
@@ -50,7 +50,7 @@ async function request(options, data = null) {
             }
           } else if (res.statusCode === 401 || res.statusCode === 403) {
             const e = new AuthError(
-              "GUAIKEI_API_TOKEN 无效, 请检查环境变量 或 联系微信: 13395823479 获取解决方案",
+              "GUAIKEI_API_TOKEN 无效, 请检查环境变量 或 通过 www.guaikei.com 联系客服获取解决方案",
             );
             e.noRetry = true;
             reject(e);
@@ -91,7 +91,7 @@ async function request(options, data = null) {
   });
 }
 
-async function postJson(path, params, data) {
+async function postJson(path, params, data, token) {
   if (!path || typeof path !== "string") {
     throw new SkillError("PATH_INVALID", "path 必须是非空字符串");
   }
@@ -114,13 +114,14 @@ async function postJson(path, params, data) {
       "Content-Type": "application/json",
       "Accept-Encoding": "identity",
       "Content-Length": Buffer.byteLength(jsonData),
+      TOKEN: token,
     },
   };
 
   return await request(options, jsonData);
 }
 
-async function getJson(path, params) {
+async function getJson(path, params, token) {
   if (!path || typeof path !== "string") {
     throw new SkillError("PATH_INVALID", "path 必须是非空字符串");
   }
@@ -134,7 +135,7 @@ async function getJson(path, params) {
     host: constants.BASE_URL,
     path: fullPath,
     method: "GET",
-    headers: { "Accept-Encoding": "identity" },
+    headers: { "Accept-Encoding": "identity", TOKEN: token },
   };
 
   return await request(options);
@@ -150,14 +151,22 @@ async function getJson(path, params) {
  * @param {string} actionName - 操作名称（用于日志）
  * @returns {Promise<object>} API 响应
  */
-async function requestApi(method, path, params, data, maxAttempts, actionName) {
+async function requestApi(
+  method,
+  path,
+  params,
+  data,
+  token,
+  maxAttempts,
+  actionName,
+) {
   return await withRetry(
     async () => {
       let response;
       if (method === "POST") {
-        response = await postJson(path, params, data);
+        response = await postJson(path, params, data, token);
       } else {
-        response = await getJson(path, params);
+        response = await getJson(path, params, token);
       }
       return response;
     },

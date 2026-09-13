@@ -5,6 +5,24 @@ const token = require("../utils/token");
 const hot = require("../api/hot");
 const utils = require("../utils/utils");
 
+function emitError(command, code, message, exitCode, startTime) {
+  const payload = {
+    status: "error",
+    error_code: code,
+    message: message,
+    timestamp: new Date().toLocaleString(),
+    request: { command },
+    metadata: {
+      skill_version: constants.VERSION,
+      runtime_version: process.versions.node,
+      execution_time: Date.now() - startTime,
+    },
+    results: null,
+  };
+  process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
+  process.exitCode = exitCode;
+}
+
 /**
  * 主函数 - 获取抖音热榜入口
  */
@@ -13,30 +31,27 @@ async function main() {
   utils.printBanner();
 
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") process.exit(3);
+  if (tokenValue === "") {
+    emitError(
+      "hot",
+      "AUTH_REQUIRED",
+      "GUAIKEI_API_TOKEN 未配置或无效, 请配置环境变量后重试; 可通过 https://www.guaikei.com 自助开通",
+      3,
+      startTime,
+    );
+    return;
+  }
   let hotTask = null;
   try {
     hotTask = await hot.getHotTask(tokenValue);
   } catch (error) {
     utils.printError(`获取抖音热榜失败: ${error.message}`);
-    const errorOutput = {
-      status: "error",
-      error_code: error.code || "UNKNOWN",
-      message: error.message,
-      timestamp: new Date().toLocaleString(),
-      request: {
-        command: "hot",
-      },
-      metadata: {
-        skill_version: constants.VERSION,
-        runtime_version: process.versions.node,
-        execution_time: Date.now() - startTime,
-      },
-      results: null,
-    };
-    const exitCode = error.name === "AuthError" ? 3 : 1;
-    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
-      process.exit(exitCode),
+    emitError(
+      "hot",
+      error.code || "UNKNOWN",
+      error.message,
+      error.name === "AuthError" ? 3 : 1,
+      startTime,
     );
     return;
   }
@@ -84,5 +99,5 @@ async function main() {
 
 main().catch((error) => {
   utils.printError(error.message);
-  process.exit(1);
+  process.exitCode = 1;
 });

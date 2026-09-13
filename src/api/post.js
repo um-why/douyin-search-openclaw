@@ -5,8 +5,8 @@ const constants = require("../config/constants");
 const { requestApi } = require("../utils/request");
 
 function processPostResults(data) {
-  if (!data || !Array.isArray(data.post)) {
-    return [];
+  if (!data || !Array.isArray(data.post) || data.post.length === 0) {
+    return data;
   }
   return data.post;
 }
@@ -20,10 +20,7 @@ function processPostResults(data) {
  * @throws {Error} API调用失败时抛出错误
  */
 async function createPostTask(token, url, limit) {
-  const params = {
-    _: Date.now(),
-    token: token,
-  };
+  const params = { _: Date.now() };
   const data = {
     url: url,
     limit: limit,
@@ -33,6 +30,7 @@ async function createPostTask(token, url, limit) {
     "/api/douyin/post/url",
     params,
     data,
+    token,
     constants.CREATE_MAX_ATTEMPTS,
     "创建任务",
   );
@@ -49,7 +47,6 @@ async function createPostTask(token, url, limit) {
 async function getPostTask(token, url, limit) {
   const params = {
     _: Date.now(),
-    token: token,
     url: url,
     limit: limit,
   };
@@ -58,6 +55,7 @@ async function getPostTask(token, url, limit) {
     "/api/douyin/post/info",
     params,
     null,
+    token,
     constants.QUERY_MAX_ATTEMPTS,
     "查询任务",
   );

@@ -6,7 +6,6 @@ const log = require("../utils/log");
 const token = require("../utils/token");
 const utils = require("../utils/utils");
 const validator = require("../validate/keyword");
-const { ApiError } = require("../utils/errors");
 const { parseArgs, buildHelp } = require("../utils/args");
 
 const SCHEMA = {
@@ -63,17 +62,35 @@ const SCHEMA = {
 };
 
 function printHelp() {
-  console.log(
+  process.stderr.write(
     buildHelp(SCHEMA, "node src/douyin/search-cli.js <关键词> [选项]", [
-      "node src/douyin/search-cli.js --keyword 'AI'",
-      "node src/douyin/search-cli.js --keyword 'AI 模型'",
+      'node src/douyin/search-cli.js --keyword "AI"',
+      'node src/douyin/search-cli.js --keyword "AI 模型"',
       "node src/douyin/search-cli.js --keyword AI --sort 0 --time 0 --duration 0 --limit 10",
-      "node src/douyin/search-cli.js -k 'AI 模型' -s 1 -t 180 -d 2 -l 100",
+      'node src/douyin/search-cli.js -k "AI 模型" -s 1 -t 180 -d 2 -l 100',
     ]) +
       "\n\n注意:\n" +
-      "  - 关键词建议 2-50 个汉字，避免特殊符号 \n" +
+      "  - 关键词建议 2-50 个字符，不能是链接, 不含 < > \" ' &\n" +
       "  - 所有参数都会自动清洗和验证",
   );
+}
+
+function emitError(command, code, message, exitCode, startTime, request) {
+  const payload = {
+    status: "error",
+    error_code: code,
+    message: message,
+    timestamp: new Date().toLocaleString(),
+    request: request || { command },
+    metadata: {
+      skill_version: constants.VERSION,
+      runtime_version: process.versions.node,
+      execution_time: Date.now() - startTime,
+    },
+    results: null,
+  };
+  process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
+  process.exitCode = exitCode;
 }
 
 /**
@@ -85,6 +102,7 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
     printHelp();
+    process.exitCode = 2;
     return;
   }
 
@@ -94,26 +112,35 @@ async function main() {
   } catch (error) {
     utils.printError(`参数解析错误: ${error.message}`);
     printHelp();
-    process.exit(1);
+    emitError(
+      "search",
+      "INVALID_ARGS",
+      `参数解析错误: ${error.message}`,
+      2,
+      startTime,
+    );
+    return;
   }
   if (parsed._help) {
     printHelp();
-    process.exit(0);
+    return;
   }
   let { keyword, sort, time, duration, content, limit } = parsed;
 
   utils.printBanner();
-  utils.printInfo(`原始关键词: ${keyword}`);
+  const keywordRaw = keyword;
+  utils.printInfo(`原始关键词: ${keywordRaw}`);
   keyword = validator.cleanKeyword(keyword);
-  const isRight = validator.isKeywordValid(keyword);
-  if (!isRight) {
-    const errorOutput = {
-      status: "error",
-      error_code: "INVALID_KEYWORD",
-      message: "关键词不合法：需 2–50 字符且不含特殊符号/http 链接",
-      timestamp: new Date().toLocaleString(),
-      request: {
+  if (!validator.isKeywordValid(keyword)) {
+    emitError(
+      "search",
+      "INVALID_KEYWORD",
+      "关键词不合法: 需 2-50 个字符, 不能是链接, 不含 < > \" ' & 等特殊符号",
+      1,
+      startTime,
+      {
         command: "search",
+        keyword_raw: keywordRaw,
         keyword: keyword,
         sort: sort,
         time: time,
@@ -121,15 +148,6 @@ async function main() {
         content: content,
         limit: limit,
       },
-      metadata: {
-        skill_version: constants.VERSION,
-        runtime_version: process.versions.node,
-        execution_time: Date.now() - startTime,
-      },
-      results: null,
-    };
-    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
-      process.exit(1),
     );
     return;
   }
@@ -146,10 +164,20 @@ async function main() {
   );
 
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") process.exit(3);
+  if (tokenValue === "") {
+    emitError(
+      "search",
+      "AUTH_REQUIRED",
+      "GUAIKEI_API_TOKEN 未配置或无效, 请配置环境变量后重试; 可通过 https://www.guaikei.com 自助开通",
+      3,
+      startTime,
+      { command: "search", keyword: keyword, limit: limit },
+    );
+    return;
+  }
   let searchTask = null;
   try {
-    const status = await search.createSearchTask(
+    await search.createSearchTask(
       tokenValue,
       keyword,
       sort,
@@ -171,13 +199,15 @@ async function main() {
     );
   } catch (error) {
     utils.printError(`搜索失败: ${error.message}`);
-    const errorOutput = {
-      status: "error",
-      error_code: error.code || "UNKNOWN",
-      message: error.message,
-      timestamp: new Date().toLocaleString(),
-      request: {
+    emitError(
+      "search",
+      error.code || "UNKNOWN",
+      error.message,
+      error.name === "AuthError" ? 3 : 1,
+      startTime,
+      {
         command: "search",
+        keyword_raw: keywordRaw,
         keyword: keyword,
         sort: sort,
         time: time,
@@ -185,16 +215,6 @@ async function main() {
         content: content,
         limit: limit,
       },
-      metadata: {
-        skill_version: constants.VERSION,
-        runtime_version: process.versions.node,
-        execution_time: Date.now() - startTime,
-      },
-      results: null,
-    };
-    const exitCode = error.name === "AuthError" ? 3 : 1;
-    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
-      process.exit(exitCode),
     );
     return;
   }
@@ -208,6 +228,7 @@ async function main() {
       timestamp: new Date().toLocaleString(),
       request: {
         command: "search",
+        keyword_raw: keywordRaw,
         keyword: keyword,
         sort: sort,
         time: time,
@@ -236,6 +257,7 @@ async function main() {
     timestamp: new Date().toLocaleString(),
     request: {
       command: "search",
+      keyword_raw: keywordRaw,
       keyword: keyword,
       sort: sort,
       time: time,
@@ -263,5 +285,5 @@ async function main() {
 
 main().catch((error) => {
   utils.printError(error.message);
-  process.exit(1);
+  process.exitCode = 1;
 });

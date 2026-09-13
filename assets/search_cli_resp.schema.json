@@ -52,6 +52,10 @@
             "type": "number",
             "description": "抖音视频收藏数"
         },
+        "recommend_count": {
+            "type": "number",
+            "description": "交互界面未显示字段"
+        },
         "share_url": {
             "type": "string",
             "description": "抖音视频分享URL"
@@ -99,6 +103,22 @@
         "url": {
             "type": "string",
             "description": "抖音视频URL"
+        },
+        "duration": {
+            "type": "number",
+            "description": "抖音视频时长"
+        },
+        "caption": {
+            "type": "string",
+            "description": "抖音视频标题"
+        },
+        "suggest_words": {
+            "type": "array",
+            "description": "抖音视频小蓝词",
+            "items": {
+                "type": "string",
+                "description": "抖音视频小蓝词"
+            }
         },
         "author_url": {
             "type": "string",

@@ -16,10 +16,11 @@ const utils = require("../utils/utils");
 async function getHotTask(token) {
   return await withRetry(
     async () => {
-      const res = await getJson("/api/douyin/hot-search", {
-        _: Date.now(),
-        token: token,
-      });
+      const res = await getJson(
+        "/api/douyin/hot-search",
+        { _: Date.now() },
+        token,
+      );
       return res.data;
     },
     constants.QUERY_MAX_ATTEMPTS,

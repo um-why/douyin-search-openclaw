@@ -35,10 +35,7 @@ function processCommentResults(data) {
  * @throws {Error} API调用失败时抛出错误
  */
 async function createCommentTask(token, url, limit) {
-  const params = {
-    _: Date.now(),
-    token: token,
-  };
+  const params = { _: Date.now() };
 
   const data = {
     url,
@@ -50,6 +47,7 @@ async function createCommentTask(token, url, limit) {
     "/api/douyin/comment/url",
     params,
     data,
+    token,
     constants.CREATE_MAX_ATTEMPTS,
     "创建任务",
   );
@@ -66,7 +64,6 @@ async function createCommentTask(token, url, limit) {
 async function getCommentTask(token, url, limit) {
   const params = {
     _: Date.now(),
-    token: token,
     url: url,
     limit: limit,
   };
@@ -76,6 +73,7 @@ async function getCommentTask(token, url, limit) {
     "/api/douyin/comment/info",
     params,
     null,
+    token,
     constants.QUERY_MAX_ATTEMPTS,
     "查询任务",
   );

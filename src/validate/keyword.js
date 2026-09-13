@@ -1,12 +1,7 @@
 const utils = require("../utils/utils");
 
-/**
- * 检查搜索关键词是否符合要求
- * @param {string} keyword - 搜索关键词
- * @returns {boolean} - 是否有效
- */
 function isKeywordValid(keyword) {
-  keyword = keyword.trim();
+  keyword = String(keyword ?? "").trim();
   if (keyword.length < 2) {
     utils.printError(`搜索关键词长度不能小于 2 个字符`);
     return false;
@@ -15,13 +10,13 @@ function isKeywordValid(keyword) {
     utils.printError(`搜索关键词长度不能超过 50 个字符`);
     return false;
   }
-  if (/[<>\"'&]/g.test(keyword)) {
-    utils.printError(`搜索关键词包含特殊字符, 请输入普通关键词, 例如: 新媒体`);
+  if (/https?:\/\//i.test(keyword) || /www\./i.test(keyword)) {
+    utils.printError(`搜索关键词不能是链接, 请输入普通关键词, 例如: 新媒体`);
     return false;
   }
-  if (keyword.includes("http")) {
+  if (/[<>"'&]/.test(keyword)) {
     utils.printError(
-      `搜索关键词包含 http 链接, 请输入普通关键词, 例如: 新媒体`,
+      `搜索关键词包含特殊字符 < > " ' &, 请输入普通关键词, 例如: 新媒体`,
     );
     return false;
   }
@@ -34,8 +29,7 @@ function isKeywordValid(keyword) {
  * @returns {string} - 清洗后的搜索关键词
  */
 function cleanKeyword(keyword) {
-  keyword = keyword.trim();
-  keyword = keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s.,!?# ，。！？]/g, "");
+  keyword = String(keyword ?? "").trim();
   keyword = keyword.replace(/\s+/g, " "); // 合并连续空格
   return keyword;
 }
@@ -50,11 +44,15 @@ function cleanKeyword(keyword) {
  * @returns {[number, number, number, number]} 格式化后的选项数组
  */
 function optionFormat(sort, time, duration, content, limit) {
-  sort = sort || 0;
-  time = time || 0;
-  duration = duration || 0;
-  content = content || 0;
-  limit = limit || 10;
+  const num = (v, def) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : def;
+  };
+  sort = num(sort, 0);
+  time = num(time, 0);
+  duration = num(duration, 0);
+  content = num(content, 0);
+  limit = num(limit, 10);
   if (sort !== 0 && sort !== 1 && sort !== 2) {
     utils.printError(`排序依据 ${sort} 无效, 请使用 0, 1, 2。 默认值为 0`);
     sort = 0;
@@ -80,38 +78,8 @@ function optionFormat(sort, time, duration, content, limit) {
   return [sort, time, duration, content, limit];
 }
 
-function formatMessage(keyword, result) {
-  let message = `**抖音综合搜索结果**: ${keyword}\n`;
-  message += "-".repeat(35) + "\n\n";
-  for (let i = 0; i < result.length; i++) {
-    const item = result[i];
-    message += `**${i + 1} .** ${item.desc || "[无标题]"}\n`;
-    message += `**发布人**: ${item.author_nickname || "[未知]"}\n`;
-    message += `**发布时间**: ${item.create_time_str || "[未知]"}\n`;
-    message += `**链接**: ${item.url || "[未知]"}\n`;
-    if (item.dynamic_cover && item.dynamic_cover.length > 0) {
-      message += `**封面**: ${item.dynamic_cover[0] || ""}\n`;
-    }
-    if (item.play_addr) {
-      message += `**视频**: ${item.play_addr}\n`;
-    }
-    if (item.images && item.images.length > 0) {
-      message += `**图文**: ${item.images.slice(0, 3).join(", ")}...\n`;
-    }
-    message += `**点赞**: ${item.digg_count || 0}\t`;
-    message += `**评论**: ${item.comment_count || 0}\t`;
-    message += `**收藏**: ${item.collect_count || 0}\t`;
-    message += `**分享**: ${item.share_count || 0}\n`;
-    message += "\n";
-  }
-  message += "-".repeat(35) + "\n";
-  message += `**共 ${result.length} 条结果**\n`;
-  return message;
-}
-
 module.exports = {
   isKeywordValid,
   cleanKeyword,
   optionFormat,
-  formatMessage,
 };

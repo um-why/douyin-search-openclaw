@@ -6,7 +6,6 @@ const log = require("../utils/log");
 const token = require("../utils/token");
 const utils = require("../utils/utils");
 const validator = require("../validate/comment");
-const { ApiError } = require("../utils/errors");
 const { parseArgs, buildHelp } = require("../utils/args");
 
 const SCHEMA = {
@@ -31,13 +30,34 @@ const SCHEMA = {
 };
 
 function printHelp() {
-  console.log(
+  process.stderr.write(
     buildHelp(SCHEMA, "node src/douyin/comment-cli.js <url> [选项]", [
       "node src/douyin/comment-cli.js https://www.douyin.com/video/xxx",
       "node src/douyin/comment-cli.js --url https://www.douyin.com/note/xxx --limit 20",
-      "node src/douyin/comment-cli.js -u xxx --limit 100",
-    ]),
+      "node src/douyin/comment-cli.js -u xxx -l 100",
+    ]) +
+      "\n\n注意:\n" +
+      "  - 支持视频/图文链接 / v.douyin.com 短链 / aweme_id(纯数字), 自动剥离 query 参数\n" +
+      "  - Windows cmd.exe 下请使用双引号\n",
   );
+}
+
+function emitError(command, code, message, exitCode, startTime, request) {
+  const payload = {
+    status: "error",
+    error_code: code,
+    message: message,
+    timestamp: new Date().toLocaleString(),
+    request: request || { command },
+    metadata: {
+      skill_version: constants.VERSION,
+      runtime_version: process.versions.node,
+      execution_time: Date.now() - startTime,
+    },
+    results: null,
+  };
+  process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
+  process.exitCode = exitCode;
 }
 
 /**
@@ -48,7 +68,8 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
     printHelp();
-    process.exit(0);
+    process.exitCode = 2;
+    return;
   }
 
   let parsed;
@@ -57,50 +78,67 @@ async function main() {
   } catch (error) {
     utils.printError(`参数解析错误: ${error.message}`);
     printHelp();
-    process.exit(1);
+    emitError(
+      "comment",
+      "INVALID_ARGS",
+      `参数解析错误: ${error.message}`,
+      2,
+      startTime,
+    );
+    return;
   }
   if (parsed._help) {
     printHelp();
-    process.exit(0);
+    return;
   }
 
   let { url, limit } = parsed;
+  const urlRaw = url;
 
   utils.printBanner();
-  utils.printInfo(`原始URL: ${url}`);
+  utils.printInfo(`原始URL: ${urlRaw}`);
   url = validator.douyinPostUrl(url);
+  if (!url) {
+    utils.printError("无法识别抖音视频/图文链接或 aweme_id");
+    emitError(
+      "comment",
+      "INVALID_URL",
+      "无法识别视频/图文链接或 aweme_id。支持: https://www.douyin.com/video/xxx、https://www.douyin.com/note/xxx、https://v.douyin.com/xxx, 或直接输入 aweme_id (纯数字)",
+      1,
+      startTime,
+      { command: "comment", url_raw: urlRaw },
+    );
+    return;
+  }
   utils.printInfo(`规范后的URL: ${url}`);
   limit = validator.optionFormat(limit);
   const tokenValue = token.skillToken(process.env.GUAIKEI_API_TOKEN);
-  if (tokenValue === "") process.exit(3);
+  if (tokenValue === "") {
+    emitError(
+      "comment",
+      "AUTH_REQUIRED",
+      "GUAIKEI_API_TOKEN 未配置或无效, 请配置环境变量后重试; 可通过 https://www.guaikei.com 自助开通",
+      3,
+      startTime,
+      { command: "comment", url: url },
+    );
+    return;
+  }
   let commentTask = null;
   try {
-    const status = await comment.createCommentTask(tokenValue, url, limit);
+    await comment.createCommentTask(tokenValue, url, limit);
     utils.printSuccess(`获取评论任务创建成功, 正在获取评论中...`);
 
     commentTask = await comment.getCommentTask(tokenValue, url, limit);
   } catch (error) {
     utils.printError(`获取评论失败: ${error.message}`);
-    const errorOutput = {
-      status: "error",
-      error_code: error.code || "UNKNOWN",
-      message: error.message,
-      timestamp: new Date().toLocaleString(),
-      request: {
-        command: "comment",
-        url: url,
-        limit: limit,
-      },
-      metadata: {
-        skill_version: constants.VERSION,
-        runtime_version: process.versions.node,
-        execution_time: Date.now() - startTime,
-      },
-      results: null,
-    };
-    const exitCode = error.name === "AuthError" ? 3 : 1;
-    process.stdout.write(JSON.stringify(errorOutput, null, 2) + "\n", () =>
-      process.exit(exitCode),
+    emitError(
+      "comment",
+      error.code || "UNKNOWN",
+      error.message,
+      error.name === "AuthError" ? 3 : 1,
+      startTime,
+      { command: "comment", url: url, limit: limit },
     );
     return;
   }
@@ -156,6 +194,7 @@ async function main() {
   url = url.replace(/[^a-zA-Z0-9_-]/g, "");
   url = url.replace("httpswwwdouyincomvideo", "");
   url = url.replace("httpswwwdouyincomnote", "");
+  url = url.replace("httpsvdouyincom", "");
   await log.taskWrite(
     `${startTime}_${url}_comment.json`,
     JSON.stringify(finalOutput, null, 2),
@@ -164,5 +203,5 @@ async function main() {
 
 main().catch((error) => {
   utils.printError(error.message);
-  process.exit(1);
+  process.exitCode = 1;
 });
