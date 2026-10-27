@@ -10,6 +10,23 @@
  * @returns {string} 解析到的值
  * @throws {Error} 若值缺失或为另一个 flag
  */
+/**
+ * 只接受十进制整数字符串。拒绝 0x10、1e4、空白这类会被 Number() 悄悄改写的写法。
+ * @param {string} raw
+ * @returns {number}
+ */
+function parseDecimalInteger(raw) {
+  const s = String(raw).trim();
+  if (!/^[0-9]+$/.test(s)) {
+    throw new Error(`须为十进制整数, 收到: "${raw}"`);
+  }
+  const n = Number(s);
+  if (!Number.isSafeInteger(n)) {
+    throw new Error(`须为十进制整数, 收到: "${raw}"`);
+  }
+  return n;
+}
+
 function readValueAfterFlag(args, index, flagName) {
   const next = args[index + 1];
   if (next === undefined) {
@@ -138,4 +155,9 @@ function buildHelp(schema, usage, examples = []) {
   return lines.join("\n");
 }
 
-module.exports = { parseArgs, readValueAfterFlag, buildHelp };
+module.exports = {
+  parseArgs,
+  readValueAfterFlag,
+  buildHelp,
+  parseDecimalInteger,
+};

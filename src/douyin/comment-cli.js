@@ -5,7 +5,7 @@ const log = require("../utils/log");
 const token = require("../utils/token");
 const utils = require("../utils/utils");
 const validator = require("../validate/comment");
-const { parseArgs, buildHelp } = require("../utils/args");
+const { parseArgs, buildHelp, parseDecimalInteger } = require("../utils/args");
 const {
   emitError,
   emitEmpty,
@@ -27,7 +27,7 @@ const SCHEMA = {
       key: "limit",
       type: "number",
       default: 10,
-      transform: (v) => Number(v),
+      transform: parseDecimalInteger,
       desc: "评论数量, 1-10000",
     },
   },
@@ -116,7 +116,7 @@ async function main() {
     emitError(
       "comment",
       "AUTH_REQUIRED",
-      "GUAIKEI_API_TOKEN 未配置或格式无效。须为 16-256 位字母、数字、下划线或连字符; 可通过 https://www.guaikei.com 自助开通",
+      "GUAIKEI_API_TOKEN 未配置或格式无效。须为 16-256 位字母、数字、下划线或连字符",
       3,
       startTime,
       { command: "comment", url_raw: urlRaw, url: url },
