@@ -44,24 +44,32 @@ function parseArgs(args, schema) {
   }
 
   let i = 0;
+  let noMoreFlags = false;
   while (i < args.length) {
     const arg = args[i];
-    const eq = arg.indexOf("=");
+
+    if (!noMoreFlags && arg === "--") {
+      noMoreFlags = true;
+      i++;
+      continue;
+    }
+
+    const eq = !noMoreFlags ? arg.indexOf("=") : -1;
     const argName = eq > 0 ? arg.slice(0, eq) : arg;
     const inlineValue = eq > 0 ? arg.slice(eq + 1) : undefined;
 
-    // 帮助
-    if (argName === "--help" || argName === "-h") {
+    if (!noMoreFlags && (argName === "--help" || argName === "-h")) {
       result._help = true;
       return result;
     }
 
-    // 查找匹配的 flag
     let matched = null;
-    for (const [flag, def] of Object.entries(schema.flags)) {
-      if (argName === flag || (def.alias && argName === def.alias)) {
-        matched = { flag, def };
-        break;
+    if (!noMoreFlags) {
+      for (const [flag, def] of Object.entries(schema.flags)) {
+        if (argName === flag || (def.alias && argName === def.alias)) {
+          matched = { flag, def };
+          break;
+        }
       }
     }
 
@@ -75,7 +83,7 @@ function parseArgs(args, schema) {
       if (def.type === "boolean") {
         result[def.key] = true;
       } else if (inlineValue !== undefined) {
-        if (inlineValue === "" || inlineValue.startsWith("-")) {
+        if (inlineValue === "") {
           throw new Error(`参数 ${argName} 缺少有效值`);
         }
         result[def.key] = def.transform ? def.transform(inlineValue) : inlineValue;
@@ -84,8 +92,7 @@ function parseArgs(args, schema) {
         result[def.key] = def.transform ? def.transform(rawValue) : rawValue;
         i++;
       }
-    } else if (!arg.startsWith("-")) {
-      // 位置参数
+    } else if (noMoreFlags || !arg.startsWith("-")) {
       if (schema.positionalKey && result[schema.positionalKey] === undefined) {
         result[schema.positionalKey] = arg;
       } else {

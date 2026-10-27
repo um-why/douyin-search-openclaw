@@ -20,7 +20,7 @@ const SCHEMA = {
       key: "url",
       type: "string",
       required: true,
-      desc: "抖音视频(或图文)URL或aweme_id",
+      desc: "抖音视频/图文URL、v.douyin.com 短链或 aweme_id",
     },
     "--limit": {
       alias: "-l",
@@ -39,10 +39,11 @@ function printHelp() {
     buildHelp(SCHEMA, "node src/douyin/comment-cli.js <url> [选项]", [
       "node src/douyin/comment-cli.js https://www.douyin.com/video/xxx",
       "node src/douyin/comment-cli.js --url https://www.douyin.com/note/xxx --limit 20",
+      "node src/douyin/comment-cli.js --url https://v.douyin.com/xxx --limit 20",
       "node src/douyin/comment-cli.js -u xxx -l 100",
     ]) +
       "\n\n注意:\n" +
-      "  - 支持视频/图文链接 / v.douyin.com 短链 / aweme_id(纯数字), 自动剥离 query 参数\n" +
+      "  - 支持视频/图文链接 / iesdouyin 分享链 / v.douyin.com 短链 / aweme_id(纯数字), 自动剥离 query 参数\n" +
       "  - Windows cmd.exe 下请使用双引号\n",
   );
 }
