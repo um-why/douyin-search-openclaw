@@ -241,7 +241,6 @@ node src/douyin/hot-cli.js
 
 ## 📞 帮助与支持
 
-- 🌐 **自助开通 TOKEN / 查阅使用帮助**：[抖音数据技能官网](https://www.guaikei.com)（推荐，最快）
-- 💬 联系微信 `13395823479`（备注"抖音技能"）开通 TOKEN 或获得使用支持
+- 🌐 **自助开通 TOKEN / 查阅使用帮助**：[抖音数据技能官网](https://www.guaikei.com)
 
 > 🆕 [更新日志](references/changelog.md) ｜ 参数详情见 [references/options.md](references/options.md) ｜ 完整能力说明见 [SKILL.md](SKILL.md)

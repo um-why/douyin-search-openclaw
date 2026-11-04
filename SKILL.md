@@ -15,7 +15,7 @@ metadata:
   enabled: true
   runtime: "nodejs@16.14.0+"
   env_desc:
-    GUAIKEI_API_TOKEN: "抖音数据 API 访问令牌。未配置时无法调用接口；可通过 https://www.guaikei.com 开通，或联系开发者(wx 13395823479)获取支持。"
+    GUAIKEI_API_TOKEN: "抖音数据 API 访问令牌。未配置时无法调用接口；可通过 https://www.guaikei.com 开通并获取支持。"
   keywords:
     - "抖音"
     - "抖音搜索"
