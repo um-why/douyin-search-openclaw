@@ -1,15 +1,15 @@
-# 🚀 抖音数据采集工具｜关键词搜索 · 博主作品 · 作品详情 · 视频评论 · 实时热榜（无需登录 / 不封号）
+# 🚀 抖音数据采集工具｜关键词搜索 · 用户搜索 · 博主作品 · 作品详情 · 视频评论 · 实时热榜（无需登录 / 不封号）
 
-> **💡一句话价值**：一条命令拿到抖音公开的视频/作者/作品详情/评论/热榜数据，直接输出结构化 JSON——做爆款选题、对标账号监控、单条作品数据和热点追踪，不用再手动刷抖音。
+> **💡一句话价值**：一条命令拿到抖音公开的视频/用户/作者/作品详情/评论/热榜数据，直接输出结构化 JSON——做爆款选题、找对标账号、公域获客、账号监控、单条作品数据和热点追踪，不用再手动刷抖音。
 
-**一句话简介（给 AI 与搜索引擎）**：抖音公开数据只读技能，支持关键词搜索视频与图文、博主作品与粉丝数据、单条作品详情、视频图文评论、实时热榜，全部以结构化 JSON 输出，不登录、不发布、不点赞、不评论。关键词：抖音搜索、抖音热搜、抖音热榜、抖音评论、需求挖掘、痛点、播放量、作品详情、博主作品、对标账号、竞品分析、选题挖掘、舆情监控、douyin search、douyin hot、douyin detail、douyin comments。
+**一句话简介（给 AI 与搜索引擎）**：抖音公开数据只读技能，支持关键词搜索视频与图文、用户/达人搜索、博主作品与粉丝数据、单条作品详情、视频图文评论、实时热榜，并可按剧本做需求挖掘与公域获客（search→comment），全部以结构化 JSON 输出，不登录、不发布、不点赞、不评论。关键词：抖音搜索、抖音用户搜索、抖音热搜、抖音热榜、抖音评论、需求挖掘、获客、线索、竞品截流、痛点、播放量、作品详情、博主作品、对标账号、竞品分析、选题挖掘、舆情监控、douyin search、douyin user search、douyin hot、douyin detail、douyin comments。
 
-**维护状态**：持续更新中，当前版本 `1.4.2`，[更新日志](references/changelog.md)。
+**维护状态**：持续更新中，当前版本 `1.4.3`，[更新日志](references/changelog.md)。
 
 > **🔥核心优势**
 >
 > - 安全：无需登录你的抖音账号，不存在风控 / 封号问题
-> - 强大：按量 Token 单次最多 10000 条；包月 Token 搜索/作品最多 30、评论最多 50
+> - 强大：按量 Token 单次最多 10000 条；包月 Token 视频搜索/用户搜索/作品最多 30、评论最多 50
 > - 全面：出参覆盖作者、互动（点赞/评论/收藏/分享/推荐）、标签、链接、音乐、话题等可用字段
 > - 灵活：支持排序（综合/最多点赞/最新）、时间（1天/7天/半年）、时长、内容类型（视频/图文）多维度筛选
 > - 轻量：零第三方依赖，Node.js 内置模块直接跑，无需部署服务
@@ -20,13 +20,15 @@
 | 你是谁     | 你要做的事                       | 用哪个功能                  |
 | ---------- | -------------------------------- | --------------------------- |
 | 短视频运营 | 找爆款选题、分析高赞视频规律     | 关键词搜索（点赞/最新排序） |
-| 品牌/投放  | 监控对标账号的内容策略和发文节奏 | 博主作品抓取                |
+| 运营/投放  | 按关键词找对标账号、达人         | 用户搜索                    |
+| 销售/增长  | 评论区挖高意向线索、竞品截流     | 搜索→评论 + [获客剧本](references/customer-acquisition.md) |
+| 品牌/投放  | 监控已知账号的内容策略和发文节奏 | 博主作品抓取                |
 | 内容分析   | 看一条视频的文案、播放和互动     | 作品详情                    |
 | 舆情/客服  | 看一条视频评论区在骂还是在夸     | 评论抓取                    |
 | 内容策划   | 快速追热点、找当天的流量入口     | 实时热榜                    |
 | 数据分析   | 把抖音数据导入 Excel/BI 做周报   | 结构化 JSON + 日志落盘      |
 
-**典型产出**：结构化 JSON（含标题、作者、点赞/评论/收藏/分享、标签、视频链接、发布时间），可直接导入 Excel / BI，或交给 AI 生成**选题库、竞品对比表、舆情周报、发文节奏分析**。
+**典型产出**：结构化 JSON（含标题、作者、点赞/评论/收藏/分享、标签、视频链接、发布时间），可直接导入 Excel / BI，或交给 AI 生成**选题库、竞品对比表、舆情周报、发文节奏分析、公域线索表**。剧本见 [需求挖掘](references/demand-mining.md)、[公域获客](references/customer-acquisition.md)。
 
 ---
 
@@ -58,6 +60,9 @@ node src/douyin/search-cli.js --keyword "AI" --sort 1
 
 # 🔎 近 7 天"AI 模型"的最新 20 条
 node src/douyin/search-cli.js --keyword "AI 模型" --sort 2 --time 7 --limit 20
+
+# 👤 按关键词找用户 / 对标账号
+node src/douyin/user-search-cli.js --keyword "AI" --limit 20
 
 # 🦸 抓某个博主的作品（直接粘贴 App 分享链接也行）
 node src/douyin/post-cli.js --url "https://www.douyin.com/user/MS4wLjABxxx" --limit 20
@@ -95,7 +100,7 @@ node src/douyin/hot-cli.js
     "limit": 20
   },
   "metadata": {
-    "skill_version": "1.4.2",
+    "skill_version": "1.4.3",
     "runtime_version": "22.x",
     "execution_time": 34210
   },
@@ -119,7 +124,7 @@ node src/douyin/hot-cli.js
 }
 ```
 
-- 搜索、评论、热榜成功时 `results` 是**数组**；博主作品成功时 `results` 是**对象**，包含 `post`（作品数组）和 `user`（博主信息）。
+- 视频搜索、用户搜索、评论、热榜成功时 `results` 是**数组**；博主作品成功时 `results` 是**对象**，包含 `post`（作品数组）和 `user`（博主信息）。
 - 空结果是 `"status": "empty"` + `error_code: "NO_MATCH"`，**退出码仍然是 0，属正常情况，不是失败**。
 - 字段较多（含封面图、播放地址等长 URL），向用户汇报时建议只摘取 `desc` / `author_nickname` / `digg_count` / `url` / `create_time_str` 等关键字段。
 
@@ -128,7 +133,8 @@ node src/douyin/hot-cli.js
 ## 📌 适用场景（我该不该用？）
 
 - 需要短视频选题 → 关键词搜索 + 点赞排序（`--sort 1`）
-- 需要研究对标账号 → 按主页链接抓取其公开作品（**一次抓一个账号**，多个账号逐条执行）
+- 需要按词找对标账号 / 达人 → 用户搜索（`user-search-cli.js`）
+- 需要研究已知账号 → 按主页链接抓取其公开作品（**一次抓一个账号**，多个账号逐条执行）
 - 需要看账号体量 → 作品命令加 `--limit 0`，直接拿粉丝数 / 获赞数
 - 需要分析内容舆情 → 获取视频/图文评论，可做观点聚类
 - 需要快速追热点 → 实时热榜（约 50 条，含排名与热度值）
@@ -155,6 +161,7 @@ node src/douyin/hot-cli.js
 > - 想看机器可校验的规范（JSON Schema draft-07）→ `assets/` 目录：
 >   - 输出信封 [output_envelope.schema.json](assets/output_envelope.schema.json)
 >   - 关键词搜索 [入参](assets/search_cli_req.schema.json) / [出参](assets/search_cli_resp.schema.json)
+>   - 用户搜索 [入参](assets/user_search_cli_req.schema.json) / [出参](assets/user_search_cli_resp.schema.json)
 >   - 博主作品 [入参](assets/post_cli_req.schema.json) / [出参](assets/post_cli_resp.schema.json)
 >   - 评论获取 [入参](assets/comment_cli_req.schema.json) / [出参](assets/comment_cli_resp.schema.json)
 >   - 作品详情 [入参](assets/detail_cli_req.schema.json) / [出参](assets/detail_cli_resp.schema.json)
@@ -188,9 +195,10 @@ node src/douyin/hot-cli.js
 
 > **Q：输出文件在哪里？**
 >
-> A：搜索 / 作品 / 评论 / 作品详情任务的结果会自动保存在技能目录的 `logs/` 下：
+> A：搜索 / 用户搜索 / 作品 / 评论 / 作品详情任务的结果会自动保存在技能目录的 `logs/` 下：
 >
 > - 搜索任务：`时间戳_关键词_排序_时间_时长_类型_search.json`
+> - 用户搜索：`时间戳_关键词_数量_user_search.json`
 > - 博主作品：`时间戳_博主sec_uid或短链码_post.json`
 > - 评论获取：`时间戳_视频aweme_id或短链码_comment.json`
 > - 作品详情：`时间戳_视频aweme_id或短链码_detail.json`
@@ -202,7 +210,7 @@ node src/douyin/hot-cli.js
 
 > **Q：单次最多多少条？调用失败扣不扣量？**
 >
-> A：技能侧硬上限 10000 条/次（按量 Token）。**包月 Token** 搜索/作品最多 30、评论最多 50，超限返回 `PLAN_LIMIT`（退出码 1），不要当网络错误重试。具体计费口径以官网说明为准。
+> A：技能侧硬上限 10000 条/次（按量 Token）。**包月 Token** 视频搜索/用户搜索/作品最多 30、评论最多 50，超限返回 `PLAN_LIMIT`（退出码 1），不要当网络错误重试。具体计费口径以官网说明为准。
 
 > **Q：报错 `PLAN_LIMIT` / 提示包月受限？**
 >
@@ -222,11 +230,13 @@ node src/douyin/hot-cli.js
 
 - **权限错误**（退出码 3，`AUTH_REQUIRED`/`AUTH_ERROR`）：TOKEN 未配置、无效或过期，提示用户重新配置，**不要重试**
 - **套餐条数超限**（退出码 1，`PLAN_LIMIT`）：包月等套餐单次上限不足，转述 `message`，建议降 `--limit` 或升级；**不要同参重试**
+- **余额不足**（退出码 1，`INSUFFICIENT_BALANCE`）：引导充值；**不要同参重试**
+- **提交过频**（退出码 1，`RATE_LIMITED`）：稍后经用户同意再试；**不要立即重试**
 - **网络超时**：可告知用户后重试，最多 1 次；仍失败则停止并报告
 
 ### 禁止行为
 
-- ❌ 不要在收到权限错误或 `PLAN_LIMIT` 后继续同参重试
+- ❌ 不要在收到权限错误、`PLAN_LIMIT`、`INSUFFICIENT_BALANCE`、`RATE_LIMITED` 后继续同参或立即重试
 - ❌ 不要在 API 返回明确错误码后擅自修改参数重试（`PLAN_LIMIT` 降 limit 须先征得用户同意）
 - ❌ 不要在用户未明确要求的情况下自动调整搜索条件
 - ❌ 不要编造数据。空结果是 `status:"empty"`、退出码 0，不要说成有结果
