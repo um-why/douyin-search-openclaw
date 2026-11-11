@@ -8,6 +8,7 @@ const { ApiError } = require("./errors");
 const PLAN_LIMIT_RE = /包月TOKEN|搜索量受限|作品量受限|评论量受限|最多支持\d+条/;
 const BALANCE_RE = /余额可能不足|TOKEN余额|请通过www\.guaikei\.com充值/;
 const RATE_RE = /短时间内请勿提交过多/;
+const DAY_LIMIT_RE = /今日消费已达每日上限|每日消费限额|每日上限/;
 
 /**
  * @param {number} errcode
@@ -43,6 +44,15 @@ function mapBackendApiError(errcode, errmsg) {
     );
   }
 
+  if (errcode === 18 || DAY_LIMIT_RE.test(msg)) {
+    return new ApiError(
+      "DAILY_LIMIT",
+      msg ||
+        "今日消费已达每日上限，请明日再试，或登录 www.guaikei.com 调整每日消费限额",
+      true,
+    );
+  }
+
   return new ApiError(
     errcode.toString(),
     msg || "请求失败",
@@ -55,4 +65,5 @@ module.exports = {
   PLAN_LIMIT_RE,
   BALANCE_RE,
   RATE_RE,
+  DAY_LIMIT_RE,
 };

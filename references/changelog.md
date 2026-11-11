@@ -1,5 +1,15 @@
 # 抖音关键词搜索 (Douyin Search & Analytics) 更新日志
 
+## 1.5.0 - 2026-11-10
+
+- 补齐 `CheckDayMoney` 日消费上限：`errcode 18` / 对应文案 → 稳定 `DAILY_LIMIT`（禁止同参重试）。
+- 收口：统一「errmsg 优先」映射（`PLAN_LIMIT` / `INSUFFICIENT_BALANCE` / `RATE_LIMITED` / `DAILY_LIMIT`）。
+- 分层披露：`SKILL.md` 压缩为执行卡（保留价值与场景）；NL 映射 / 输出契约 / 错误全表 / 追问 / FAQ 下沉到 `references/`，SKILL 保留入口总表；命令参数详表对调到 `readme.md`（GitHub 默认页）。
+- 抽出 `validate/aweme.js`（`parseDouyinAweme`）；`detail-cli` 改为依赖 aweme，不再挂靠 `validate/comment`；`comment.js` 保留 re-export 兼容。
+- 成功与错误共用 `writeJson` drain；`finishSuccess` 先落盘再刷 stdout，再 stderr 提示后 `exit(0)`，降低管道截断与崩溃丢日志风险。
+- 分享文案抽链补齐中文引号/书名号等停止符与尾部清理，避免 `「」『』“”‘’` 污染 URL。
+- `references/contract.md` 信封 `timestamp` 示例与 `time.js` 对齐：`YYYY/M/D HH:mm:ss`（`/` 分隔、月日不补零）。
+
 ## 1.4.3 - 2026-11-08
 
 - 新增用户搜索命令 `user-search-cli.js`：按关键词搜抖音用户/达人/账号，返回 `sec_uid`、昵称、粉丝、获赞、作品数等；有 `sec_uid` 时补 `author_url`。

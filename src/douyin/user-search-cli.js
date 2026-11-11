@@ -9,7 +9,8 @@ const { parseArgs, buildHelp, parseDecimalInteger } = require("../utils/args");
 const {
   emitError,
   emitEmpty,
-  printSuccessEnvelope,
+  buildSuccessEnvelope,
+  finishSuccess,
   emitUncaught,
 } = require("../utils/output");
 
@@ -170,20 +171,16 @@ async function main() {
     return;
   }
 
-  const finalOutput = printSuccessEnvelope(
+  const finalOutput = buildSuccessEnvelope(
     "用户搜索任务完成",
     startTime,
     searchRequest,
     results,
   );
-  utils.printSuccess(
-    `用户搜索任务完成, 共返回 ${finalOutput.results.length} 条结果`,
-  );
-
-  await log.writeResultLog(
-    `${startTime}_${keyword}_${limit}_user_search.json`,
-    JSON.stringify(finalOutput, null, 2),
-  );
+  await finishSuccess(finalOutput, {
+    logFilename: `${startTime}_${keyword}_${limit}_user_search.json`,
+    stderrMessage: `用户搜索任务完成, 共返回 ${finalOutput.results.length} 条结果`,
+  });
 }
 
 main().catch((error) => {
