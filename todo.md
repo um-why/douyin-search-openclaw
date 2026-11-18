@@ -3,7 +3,7 @@
 | 项 | 内容 |
 | --- | --- |
 | 审查日期 | 2026-11-03 |
-| 技能版本 | 1.4.2 |
+| 技能版本 | 1.5.1 |
 | 范围 | 本仓库 JS Skill（OpenClaw / Agent CLI）+ 对照后端 `D:\Git\guaikei\server`（REST + MCP） |
 | 用法 | 逐条处理后将 `[ ]` 改为 `[x]`，备注可写 PR / 提交 / 责任人 |
 | 建议顺序 | P0 → P1 → P2 → P3；Agent 可用性与契约稳定性优先于「加功能」 |
@@ -19,10 +19,10 @@
 当前最大短板不是「功能少」，而是：
 
 1. **双通道漂移**：后端已有 MCP（`mcp/douyin/*`），本仓库是 JS CLI Skill；校验/轮询/错误语义/能力集合不完全一致（尤其热榜仅 CLI 有）。
-2. **Agent 摩擦过大**：必须 `cd`、轮询最长约 22 分钟、stdout 结果体积极大、枚举全是魔法数字、`SKILL.md` 过长——弱模型与短上下文 Agent 极易误用。
+2. **Agent 摩擦过大**：必须 `cd`、轮询最长约 22 分钟、stdout 结果体积极大、枚举全是魔法数字——弱模型与短上下文 Agent 极易误用。（P1-1 分层披露已在 1.5.0 落地，仍需继续降摩擦。）
 3. **产品契约与后端静默纠错不一致**：Skill/MCP 对非法枚举 fail-fast；REST Create 路径仍会把非法 `sort/time/...` 悄悄改成默认值。
-4. **商业规则未写进 Skill**：包月双上限与 `PLAN_LIMIT`（errcode 14）已在 1.4.2 落地；余额预检 15、短时并发 2 等仍待 P0-2。
-5. **工程卫生**：无测试、无 `.gitignore`（`logs/` 易误提交）、无 bin 入口、detail 复用 comment 校验模块等。
+4. **校验边角与契约脆弱**：抽链「」污染已修（P1-16）；裸域名当关键词仍可穿透；包月/余额仍强依赖 errmsg 中文（M2–M3）。
+5. **工程卫生**：无测试、无 `.gitignore`（`logs/` 易误提交）、无 bin 入口、日志无限增长与 PII 落盘等。
 
 **宏观优化主线**：把本 Skill 从「给人读的长说明书 + 五个脚本」升级为「契约优先、分层披露、模型无关、与 MCP 同源」的 Agent Tool 面。
 
@@ -51,61 +51,96 @@ guaikei REST 异步任务（Create → 轮询 info / 或 MCP 内聚轮询）
 
 ### 2.1 P0 — 正确性 / 安全 / 计费 / 契约断裂
 
-- [x] **P0-1 包月 Token 上限与文档冲突**  
-  - 位置：`guaikei/server/app/douyin/general.go`（`token.Type == 0` 时 `Limit > 30` → errcode 14）；Skill 文档写 1–10000  
-  - 影响：Agent 按文档设 `--limit 100` 对包月用户必失败；用户觉得「技能坏了」  
-  - 方向：Skill 在 AUTH 后或错误映射中识别 14；SKILL.md / options 写明套餐差异；或 Create 前增加「能力探测」轻量接口  
-  - 备注：2026-11-04 已按 A+B 落地（`backendCodes.js` 映射 `14→PLAN_LIMIT`；SKILL/readme/options/changelog 写明双上限；版本 1.4.2）。能力探测 API 仍属后续
+> 已完成并从清单移除：P0-1 包月双上限文档、P0-2 余额/日限稳定码、P0-6 去掉微信手机号（见 §8）。
 
-- [ ] **P0-2 余额/日限额错误未映射为稳定 error_code**  
-  - 位置：后端 errcode 15（余额预检）、`CheckDayMoney` 等；Skill `request.js` 把非 0/401/403 的数字码原样抛出  
-  - 影响：Agent 看到 `"15"` 不知含义，可能改参数或重试导致反复扣预检/骚扰  
-  - 方向：建立 `BACKEND_CODE_MAP`：`2→RATE_LIMITED`、`15→INSUFFICIENT_BALANCE` 等；SKILL §8 补应对表（禁止乱重试）。**`14→PLAN_LIMIT` 已在 P0-1 / 1.4.2 完成**
+- [ ] **P0-3 REST 静默纠错 vs Skill/MCP fail-fast 双标准**（方案已记，**未实施**；待选 A / B / 折中）  
+  - 位置：  
+    - REST：`guaikei/server/app/{douyin,xiaohongshu,kuaishou,tiktok,wechat}/*` 各 `Create*Task`（及微信 handler 内联）对非法 `sort/time/duration/content` **静默改写为 0**，`limit` 越界 **clamp/默认**（如抖音 `general.go` 62–79）  
+    - Skill：本仓及小红书/快手/TikTok/微信 Skill 显式非法 → `INVALID_ARGS` fail-fast  
+    - MCP：`guaikei/server/mcp/{douyin,xiaohongshu,kuaishou,tiktok}` 先 `AssertChoice`/`AssertIntegerRange`，再调同一 `Create*Task`；微信无 MCP  
+    - 采集端：`claw-task-dispatch` 信任库内任务字段，做上游协议映射/翻页/回写；**不**做用户态枚举策略校验  
+  - 影响：绕过 Skill/MCP 直打 REST 时「非法参数仍成功」；实际落库已是默认筛选，排障与去重窗口易歪；与文档「显式非法不改写」在前端契约上不一致  
+  - **分层共识（对照现状，基本符合；灰区只在 REST 枚举静默改写）**  
+    1. **Skill / MCP = 前端**：参数契约校验与处理（缺省填默认；显式非法 fail-fast）— **已对齐**  
+    2. **Go API = 后端**：逻辑校验（鉴权/套餐/余额/日限/频控/关键词长度）+ 去重 + 落库 + 入队 — **逻辑层已对齐**；筛选枚举静默改写属「前端式容错」泄漏到 API  
+    3. **采集端 = 业务**：按库内参数执行上游采集与结果正确性 — **已对齐**  
+  - **方案 A — API 非法枚举直接拒（严后端）**  
+    - 做法：Skill/MCP 不变；`Create*Task` 对非法筛选枚举（及建议对非法 limit）返回错误、不落库不入队；采集端不变  
+    - `sort_type=9`：REST 立即失败，调用方明确知错  
+    - 利：三层职责清；Skill/MCP/REST 语义一致；排障与去重可信  
+    - 弊：旧脏 REST 客户端可能开始报错，需回归管理端/历史对接；改动面在多平台 `Create*Task`  
+    - 适合：公开 API 也视为正式契约，宁可不做也不假装做成  
+  - **方案 B — 仅 REST 兼容改写并写明（宽 REST）**  
+    - 做法：Skill/MCP 继续 fail-fast；REST 保留静默改写；文档/OpenAPI 标明「仅 REST 兼容，非法筛选会改成默认，不保证按非法值执行」；可选响应带回实际落库的 `sort/time/limit`  
+    - `sort_type=9`：REST 成功但按 0 采  
+    - 利：旧客户端零破坏；前端入口仍干净；可先只改文档止血  
+    - 弊：双标准仍在；无 `normalized` 字段时仍难排障；去重仍可能脏参归一误复用  
+    - 适合：Skill/MCP 是主产品面，REST 仍要养不规范老客户  
+  - **折中（可选）**：默认/新版/`strict=1` 走 A；无 strict 的老 REST 限时走 B，且响应带回实际参数；Skill/MCP 永远严格  
+  - A/B 共同点：API 的鉴权/计费/频控/长度等**逻辑校验都保留**；差别只在「筛选枚举这类契约字段」是拒还是默默修好  
+  - 状态：2026-11-09 **仅记录方案，不实施**；选定后再改 `guaikei`（及必要时文档）
 
-- [ ] **P0-3 REST 静默纠错 vs Skill fail-fast 双标准**  
-  - 位置：`CreateGeneralSearchTask` 非法 sort/time/duration/content/limit 被改写；Skill/MCP 显式非法直接失败  
-  - 影响：绕过 Skill 直打 API、或旧客户端，与文档「显式非法不改写」承诺不一致；排障困难  
-  - 方向：后端 Create 与 MCP/Skill 对齐为 fail-fast（或增加 `strict=1`）；至少管理端与公开 API 行为一致
+- [ ] **P0-4 任务入队失败导致永久卡住（后端 H1）**（方案已强化记录，**未实施**）  
+  - 位置：  
+    - 后端：各平台 `Create*Task`（抖音/小红书/快手/TikTok/微信等）在 DB 写入 `status=1` 后调用 `app.AddTask` **忽略返回值**（例：`app/douyin/general.go` 约 125–140）；对照 `guaikei/server/TODO.md` **H1**、商品侧 **XP2-1**  
+    - Skill：`pollTaskResult` 遇持续「处理中」直至 `TIMEOUT`，message 仅为「任务仍在处理中, 请稍后重试」（`src/utils/request.js`）；SKILL §8 对 TIMEOUT 有同参复用说明但偏弱  
+    - MCP：同一 Create 路径，入队失败时同样对客户端表现为「已创建」  
+    - 采集端：队列无任务则永远领不到；与 Skill 空等无直接关系  
+  - 失败链：DB 已 `status=1` → Redis 入队失败被吞 → Create 仍 `errcode 0` → Get 一直「处理中」→ Skill/MCP 空等至 TIMEOUT（约十几～二十分钟）→ Agent 易「假失败」改参重打或同参再空等  
+  - 影响：体验极差；与去重/限流叠加时排障更难；**仅改 Skill 文案无法区分「真在采」与「从未入队」**  
+  - **分层原则**：主修在 API（逻辑/状态机）；Skill/MCP 只消费明确错误码并强化「真 pending」的 TIMEOUT 话术；采集端不负责补救 Create 谎报成功  
+  - **层 1 — 后端主修复（关闭 P0-4 的必要条件）**  
+    1. 所有 Create 路径检查 `AddTask` 返回值  
+    2. 入队失败：**禁止返回 succ**；并 **标失败**（DB 非永久 `status=1`，带失败原因）和/或 **回滚**刚插入行；Create 返回可区分业务码（建议稳定语义如入队失败，避免与插入失败等含糊码混用）  
+    3. 告警：带平台 / task_id / Redis 错误  
+    4. 补偿（辅）：`*TaskLoadAll` 等对「DB=处理中但队列缺失」可再入队；连续失败或超 SLA → 标失败，避免永久 pending  
+    5. Get/查询：已失败态须返回明确失败，**不得再返回「处理中」**  
+  - **层 2 — Skill / MCP（后端有信号后才完整）**  
+    1. 映射入队失败 / 任务已死 → 稳定 `error_code`（如 `QUEUE_FAILED`），策略写清（勿当 TIMEOUT 狂轮询）  
+    2. Get 到失败态 → 立即 fail，禁止当 pending  
+    3. 强化「真处理中」的 TIMEOUT：`message`/`metadata` 写明——同参再调是**续等不是重做**；最多 1 次；写明复用窗口；**禁止改参**；可选 `reuse_window_hint` / `retry_after_ms`  
+    4. §8 / 硬性禁止条款与契约对齐  
+  - **层 3 — 文档 / 契约**  
+    - 区分：正常慢任务（TIMEOUT + 同参续等）vs 入队失败/任务已死（明确错误，禁止续等）  
+    - Skill 与 MCP 共用错误语义  
+  - **验收（实施时）**  
+    | 场景 | 期望 |  
+    | --- | --- |  
+    | Redis 入队失败 | Create 非 succ；DB 非永久处理中；有日志/告警 |  
+    | Create 已失败 | Skill/MCP 不进入长轮询 |  
+    | Get 已失败态 | 非「处理中」，立即错误退出 |  
+    | 真 pending → TIMEOUT | 明确同参续等 ≤1，禁止改参重做 |  
+  - **明确非关闭条件**：只改 Skill TIMEOUT 文案 / 只写「同参续等」→ **不算**关闭本项  
+  - 状态：2026-11-09 **仅记录强化方向，不实施**
 
-- [ ] **P0-4 任务入队失败导致永久卡住（后端 H1）**  
-  - 位置：各 `Create*Task` 忽略 `AddTask` 错误；Skill 侧会一直轮询到 TIMEOUT  
-  - 影响：用户空等约 22 分钟；体验极差且可能产生「假失败」重试  
-  - 方向：后端入队失败回滚/标失败；Skill 对「创建成功但长期 pending」在 message 中提示可同参续等（已有部分说明，需强化）
-
-- [ ] **P0-5 Token 出现在日志/Query 的后端风险外溢**  
-  - 对照：`guaikei/server/TODO.md` M7 等  
-  - 影响：Skill 用户 TOKEN 若被后端 access log 明文记录，泄露面扩大  
-  - 方向：后端脱敏（本仓库侧避免把 TOKEN 写入 `logs/` ——当前未写 TOKEN，保持）
-
-- [x] **P0-6 微信手机号写在 SKILL/readme 元数据**  
-  - 位置：`SKILL.md` `env_desc`、readme 支持区  
-  - 影响：公开仓库/技能市场爬取导致骚扰与隐私问题  
-  - 方向：仅留官网链接；私聊渠道放到登录后控制台  
-  - 备注：2026-11-04 已去掉微信手机号，仅保留官网；本次不升版本号
+- [ ] **P0-5 Token / 敏感查询串出现在日志或 URL 的风险外溢**  
+  - 对照：`guaikei/server/TODO.md` M7 等；Qwen 复核 **M5**  
+  - 影响：  
+    1. Skill 用户 TOKEN 若被后端 access log 明文记录，泄露面扩大  
+    2. 轮询 `/info` 把 keyword/url 放进 GET query（`search.js` 等），商业敏感词更易进代理/网关/访问日志  
+  - 方向：后端脱敏；Create 后以任务 ID 查询、少重传全参数（技能侧无法单方改）；本仓库继续避免把 TOKEN 写入 `logs/`
 
 ### 2.2 P1 — Agent 可用性（「更容易、更准确」的核心）
 
-- [ ] **P1-1 `SKILL.md` 过长，弱模型跟不全**  
-  - 现状：约 300+ 行，含表格、决策树、错误表、合规、FAQ  
-  - 影响：GLM / 小参数 DeepSeek / 短上下文 Agent 容易只读到前半段，漏掉「先 cd」「AUTH 不重试」「results 形态因命令而异」  
-  - 方向：分层披露（见 §3.1）：frontmatter + 一页「执行卡」；细节沉到 `references/`，用「何时读」触发
+> 已完成并从清单移除：P1-1 SKILL 分层披露（1.5.0）；P1-16 抽链「」等停止符；P1-10 方向 A 双壳文档 + 方向 B `--json-args`（均记在 1.5.1，B 不升版本）。C（解析失败提示/`run.cmd` 等）仍可选。
 
 - [ ] **P1-2 必须 `cd` 到技能目录**  
-  - 位置：SKILL §1、§9  
+  - 位置：SKILL §1、§9；Qwen 复核确认：绝对路径调用其实能跑，但日志仍写到技能目录 `logs/`，多轮 shell 的 `cd` 易丢  
   - 影响：Cursor/Codex 工作目录常是用户仓库根；`Cannot find module` 是最高频失败之一  
   - 方向：  
-    1. `package.json` 增加 `"bin"` + 安装后全局/本地命令；  
+    1. `package.json` 增加 `"bin"` + 安装后全局/本地命令（中期可 npm/`npx`）；  
     2. 或 CLI 顶部用 `__dirname` 固定相对路径（已是），再提供 `run.cmd`/`run.sh` 包装；  
     3. SKILL 示例改为「绝对路径调用」：`node "<SKILL_ROOT>/src/douyin/hot-cli.js"`；  
-    4. 增加启动自检：找不到 `package.json` name 时 stderr 给出应 cd 的路径
+    4. 增加启动自检：找不到 `package.json` name 时 stderr 给出应 cd 的路径；  
+    5. 可选 `--out` / 环境变量指定日志目录，弱化对 cwd 的依赖
 
 - [ ] **P1-3 轮询过长 vs Agent 默认超时**  
   - 现状：QUERY 20 次、间隔 2→60s，叠加单次 20s，文档写最长约 22 分钟  
-  - 对照：MCP helper `RetryIntervalMax = 5s`（与 JS 60s 已漂移）  
+  - 对照：MCP helper `RetryIntervalMax = 5s`（与 JS 60s 已漂移）；Qwen 复核建议 `--timeout-budget` / 两段式  
   - 影响：Cursor/Codex 工具调用常 60–120s 级超时；Agent 会杀进程再重发 → 与「禁止并发/重复」冲突，并可能打满后端「1 分钟内 >3 任务」限流  
   - 方向：  
     - 默认 `limit` 场景给出「预期耗时」字段（`metadata.eta_ms` / `retry_after_ms`）；  
-    - 支持「创建与查询分离」或返回 `task_hint` 让 Agent 同参续等；  
+    - 支持「创建与查询分离」：`--async` 只创建并返回凭据，后续同参/凭据再取；或 `--timeout-budget` 缩短轮询预算；  
     - 文档明确：TIMEOUT 后**同参再调**是续等不是重做；  
     - 与 MCP 对齐退避上限
 
@@ -135,9 +170,16 @@ guaikei REST 异步任务（Create → 轮询 info / 或 MCP 内聚轮询）
   - 影响：多一轮对话；部分 Agent 会跳过征得直接 `--limit 50`（违反硬性条款）或根本不读参考文档  
   - 方向：`comment-cli` 增加 `--mode demand`：自动建议 limit、成功后在信封 `message`/`metadata.next_steps` 嵌入四段输出提纲（仍不替模型「编造」）
 
-- [ ] **P1-10 Windows / PowerShell / cmd 引号差异**  
-  - 影响：国产 Agent 在 Windows 上拼命令失败率高  
-  - 方向：SKILL 示例默认给出 PowerShell 与 cmd 两行；或提供 `node ... --json-args '{"keyword":"AI"}'` 避免 shell 转义
+- [ ] **P1-17 「关键词不能是链接」校验不完整**（Qwen 复核 **M2**，已复现）  
+  - 位置：`src/validate/keyword.js` 仅拦 `http(s)://` 与 `www.`  
+  - 实测：`douyin.com/user/MS4wLjABxxx` 可通过校验直达 TOKEN 阶段  
+  - 影响：用户/Agent 把主页链接当关键词 → 语义不明结果或后端错，而非本地 `INVALID_KEYWORD`  
+  - 方向：拦截 `douyin.com/`、`v.douyin.com`、`iesdouyin.com`（及常见跨平台域名片段）；与 §路由「有链接走 post/detail」一致
+
+- [ ] **P1-18 包月/余额分流强依赖 errmsg 中文**（Qwen 复核 **M3**）  
+  - 位置：`src/utils/backendCodes.js` 用正则匹配文案区分 `PLAN_LIMIT` / `INSUFFICIENT_BALANCE`（因同数字多义，1.4.3/1.5.0 刻意 errmsg 优先）  
+  - 影响：后端改一字即可错映射；Agent 按错误表「降 limit / 去充值」会反着做  
+  - 方向：与后端约定专用稳定数字码（如包月超限 vs 余额不足分码），Skill 按码映射、errmsg 仅兜底；码表版本化进 `references/`；过渡期保留现正则
 
 ### 2.3 P1 — 双通道一致性（Skill ↔ MCP ↔ REST）
 
@@ -165,50 +207,61 @@ guaikei REST 异步任务（Create → 轮询 info / 或 MCP 内聚轮询）
 
 ### 2.4 P2 — 工程与代码质量（本仓库）
 
+> 已完成并从清单移除：P2-3 aweme 抽取、P2-4/P2-5 成功路径 flush+先落盘。P2-12 热榜不落盘属已接受不对称，不再单列。
+
 - [ ] **P2-1 无自动化测试**  
-  - 应覆盖：`parseArgs`、`parseDecimalInteger`、`parseDouyinUser/Aweme`、`normalizeKeyword`、信封构建、`classifyPollError`  
-  - 方向：`node:test` 或 jest；URL/分享文案 fixture 从现网样例脱敏沉淀
+  - 应覆盖：`parseArgs`、`parseDecimalInteger`、`parseDouyinUser/Aweme`、`normalizeKeyword`/`isKeywordValid`、信封构建、`classifyPollError`、抽链 fixture（含「」边角）  
+  - 方向：`node:test` 或 jest；URL/分享文案 fixture 从现网样例脱敏沉淀；可选 mock HTTP 覆盖 0/1/14/15/401
 
-- [ ] **P2-2 无 `.gitignore`**  
-  - `logs/`、`.env`、OS 垃圾文件易误入 git  
-  - 方向：补齐；`logs/.gitkeep` 可选
-
-- [ ] **P2-3 `detail-cli` 复用 `validate/comment`**  
-  - 耦合；后续 comment 校验变更可能误伤 detail  
-  - 方向：抽 `validate/aweme.js` 共用
-
-- [ ] **P2-4 成功路径 stdout 未与错误路径同样 flush**  
-  - `printSuccessEnvelope` 用 `console.log`；错误用 `writeJsonAndExit` 回调 flush  
-  - 影响：极端管道场景成功输出截断  
-  - 方向：成功也走统一 write+flush；写日志后再 exit
-
-- [ ] **P2-5 成功后先打 stderr 再写日志，进程崩溃丢盘**  
-  - 方向：先落盘再打 success；或 `metadata.log_path` 写入信封
+- [x] **P2-2 无 `.gitignore`**  
+  - 备注：已补 `logs/`、`.env*`、`node_modules/`、OS 垃圾等
 
 - [ ] **P2-6 `BASE_URL` 写死生产域名**  
   - 本地联调困难  
-  - 方向：`GUAIKEI_API_HOST` 可覆盖（默认 `www.guaikei.com`）
+  - 方向：`GUAIKEI_API_HOST` 可覆盖（默认 `www.guaikei.com`）；文档注明当前不支持自定义 `HTTPS_PROXY`/企业 TLS 拦截（Qwen **L5**）
 
 - [ ] **P2-7 无健康检查 / 版本命令**  
-  - 方向：`node src/douyin/search-cli.js --version` 与 `doctor`（检查 node 版本、TOKEN 格式、HTTPS 连通、不发起计费任务）
+  - 方向：`node src/douyin/search-cli.js --version` 与 `doctor`（检查 node 版本、TOKEN 格式、HTTPS 连通、不发起计费任务）；利于市场「首装失败率」
 
 - [ ] **P2-8 Schema 与运行时未做 CI 校验**  
-  - `assets/*.schema.json` 与真实输出可能再漂移（changelog 已修过一次）  
-  - 方向：fixture 跑 CLI mock 或录制 golden JSON 做 ajv 校验
+  - `assets/*.schema.json` 与真实输出可能再漂移；代码从不加载 schema（Qwen **L6**）  
+  - 方向：fixture / golden JSON + ajv；readme 写清「schema 供下游对接校验，非技能运行时自检」
 
 - [ ] **P2-9 五套 CLI 大量重复样板**  
   - 方向：薄封装 `runCommand({ name, schema, validate, create, get, shapeResult })` 降重复、保证错误信封一致
 
-- [ ] **P2-10 package 仓库 URL 与本地目录名不一致**  
-  - `douyin-search-openclaw` vs `douyin-search-claw`  
-  - 方向：统一命名，避免 Agent 搜错仓库
+- [ ] **P2-10 命名三处不一致（目录 / frontmatter / package）**  
+  - `douyin-search-claw`（仓/目录）vs `douyin-search-keyword`（SKILL `name`）vs package/仓库 URL 历史名（含 openclaw 旧名）  
+  - 影响：agentskills 建议 name 与目录一致；严格客户端 warning；搜索稀释（Qwen 文档不一致 #8）  
+  - 方向：统一 slug 并改齐三处（或发布说明「历史别名」）
 
 - [ ] **P2-11 无 LICENSE 文件**  
   - frontmatter 写 MIT，根目录无 LICENSE  
   - 方向：补 LICENSE
 
-- [ ] **P2-12 热榜不落盘但搜索等落盘，行为不对称**  
-  - 可接受；若 Agent 依赖「从 logs 复盘」需在文档标明热榜例外（已有）——保持即可
+- [x] **P2-17 日志落盘无治理：无限增长 + 明文 PII**（Qwen 复核 **M4**）  
+  - 备注：默认不落盘；`--save` 或 `GUAIKEI_ENABLE_LOG=1` 写入 `%TEMP%/douyin-guaikei/logs/`；已补 `.gitignore`；轮转/脱敏另议
+
+- [ ] **P2-18 `classifyPollError` 把 errcode=1 一律当处理中**（Qwen 复核 **M6**）  
+  - 位置：`src/utils/request.js`  
+  - 影响：若后端复用 1 表达其它含义，会空轮询至 TIMEOUT（约 22 分钟）  
+  - 方向：与 P1-18 一并约定显式 pending 码；过渡期可同时校验 errmsg「处理中」类文案
+
+- [ ] **P2-19 信封 `metadata.total` 仅热榜有**（Qwen **L4**）  
+  - 影响：其它命令 Agent 需自数 `results.length`  
+  - 方向：list 类成功统一写 `total`（与 hot 对齐）
+
+- [ ] **P2-20 frontmatter 非标准字段 / metadata 形态**（Qwen 文档不一致 #9）  
+  - 现状：含 `version`/`enabled`/`keywords`/`category` 等；`metadata` 值为对象/数组，而 agentskills 要求 metadata 为字符串 map  
+  - 影响：飞书 aily / 扣子 / 部分严格客户端可能拒收或告警  
+  - 方向：出「标准 6 字段裁剪版」frontmatter 或发布脚本；OpenClaw 私有段保留在兼容形态说明里
+
+- [ ] **P2-21 文档小不一致（低危）**（Qwen #4/#5/#7）  
+  - readme 日志文件名表未写实际 `${pid}_` 前缀  
+  - options 评论节漏列 iesdouyin（代码/详情节已支持）  
+  - 示例 `runtime_version: "22.x"` 与真实完整版本号示意差异（可接受）  
+  - 备注：`contract.md` timestamp 已与 `time.js` / schema / readme 对齐为 `YYYY/M/D HH:mm:ss`（月日不补零）；原横杠示例已清  
+  - 方向：其余文档小不一致改齐；不改行为
 
 ### 2.5 P2 — 产品 / 合规 / 运营
 
@@ -218,7 +271,8 @@ guaikei REST 异步任务（Create → 轮询 info / 或 MCP 内聚轮询）
 
 - [ ] **P2-14 计费不透明**  
   - Agent 无法预估「这次要花多少」  
-  - 方向：Create 响应或 doctor 返回 `estimate`；信封 metadata 带 `billable_units`
+  - 进展：取数成功/empty 已透传顶层 `cost`（estimate，对齐后端 M22）；Create 前预估 / doctor 探测仍缺
+  - 方向：Create 响应或 doctor 返回预估；勿再改成 metadata
 
 - [ ] **P2-15 合规话术偏技术向**  
   - 方向：用户确认外发数据的一句话模板，供 Agent 在首次调用前复述
@@ -340,7 +394,7 @@ Skill 再完美也掩盖不了：入队失败、Cron 错位、支付幂等、Tok
 3. 绝对路径 / bin 入口，消灭 `cd` 刚需  
 4. 错误码映射（14/15/2/…）+ 禁重试表  
 5. 字符串枚举别名  
-6. `--json-args` 或 stdin JSON，避开 shell 引号  
+6. `--json-args`，避开 shell 引号
 7. `doctor` 命令  
 8. 中英 description  
 9. TIMEOUT 续等与 ETA 字段  
@@ -361,10 +415,11 @@ Skill 再完美也掩盖不了：入队失败、Cron 错位、支付幂等、Tok
 
 ### Phase A（1–2 周，高杠杆）
 
-1. 本仓库：`.gitignore`、LICENSE、错误码映射、slim 默认输出、`results_kind`、L1 执行卡重构 SKILL  
-2. 本仓库：绝对路径示例 + `doctor` + 关键词 rune 长度  
-3. 后端：errcode 文案/码表与 Skill 对齐；评估 Create fail-fast  
-4. 更新本后档勾选
+1. 本仓库：修 P1-16/P1-17（抽链「」+ 裸域名关键词）；`.gitignore`、LICENSE、slim 默认输出、`results_kind`  
+2. 本仓库：绝对路径示例 + `doctor` + 关键词 rune 长度；日志 `--no-save`/轮转（P2-17）  
+3. 后端：专用数字码替代 errmsg 分流（P1-18）；评估 Create fail-fast（P0-3）  
+4. 更新本后档勾选  
+（已完成可不再排：错误码映射大部、L1 执行卡、aweme 解耦、成功 flush/先落盘）
 
 ### Phase B（2–4 周）
 
@@ -398,13 +453,13 @@ Skill 再完美也掩盖不了：入队失败、Cron 错位、支付幂等、Tok
 
 ## 7. 进度跟踪
 
-| 优先级 | 条目约数 | 已完成 |
-| --- | ---: | ---: |
-| P0 | 6 | 2 |
-| P1 | 15 | 0 |
-| P2 | 16 | 0 |
-| P3 | 4 | 0 |
-| **合计** | **41** | **2** |
+| 优先级 | 开放条目约数 | 说明 |
+| --- | ---: | --- |
+| P0 | 3 | 已完成项已移出清单（P0-1/2/6） |
+| P1 | 15 | P1-10A/B、P1-16 已移出；余 P1-17/18 等 |
+| P2 | 17 | 含 Qwen 新增 P2-17–21；P2-3/4/5 已移出；P2-12 接受不对称已删 |
+| P3 | 4 | — |
+| **合计** | **39** | 已完成历史见 §8，不再占开放清单 |
 
 ---
 
@@ -412,6 +467,20 @@ Skill 再完美也掩盖不了：入队失败、Cron 错位、支付幂等、Tok
 
 | 日期 | 说明 |
 | --- | --- |
+| 2026-11-14 | 信封顶层可选 `cost`（透传 REST 取数花费估算）；不升版本；热榜除外 |
+| 2026-11-14 | P2-17：默认不落盘；`--save` / `GUAIKEI_ENABLE_LOG=1` → TEMP `douyin-guaikei/logs/`；已同步 wx/xhs/ks/tt；不升版本 |
+| 2026-11-14 | P1-10 方向 B：`--json-args` + `parseCliArgs`；不升版本；已同步 xhs/ks/tt/wx（他仓 changelog 记入当前版本、不升号）；C 未做 || 2026-11-14 | P1-10 方向 A：SKILL 双壳例 + faq 引号/绝对路径排障；版本 1.5.1；已同步 xhs 1.2.3 / ks 1.1.3 / tt 1.1.3 / wx 1.1.2 |
+| 2026-11-10 | P1-16：抽链停止符/尾 scrub 补「」『』等；不升版本 |
+| 2026-11-10 | 清理已完成项出开放清单；收录桌面《douyin-search-claw-深度分析报告》中属实项：P1-16/17/18、P2-17–21，并增强 P0-5/P1-2/P1-3/P2-6/8/10 |
+| 2026-11-10 | P2-4/P2-5：统一 writeJson flush；成功先落盘再 stdout 再 exit；不升版本（已移出开放清单） |
+| 2026-11-10 | P2-3：抽 `validate/aweme.js`；detail 与 comment 解耦；不升版本（已移出开放清单） |
+| 2026-11-10 | P1-10：记入 Windows 引号差异原因与 A/B/C；方向 A 已于 1.5.1 落地 |
+| 2026-11-10 | P1-1：SKILL 执行卡重构；references 下沉 + 入口总表；参数详表对调 readme；版本 1.5.0（已移出开放清单） |
+| 2026-11-09 | P0-4：强化记录后端 H1 主修 + Skill/MCP 错误码与 TIMEOUT 话术 + 验收；明确「只改文案不算关闭」；**未实施** |
+| 2026-11-09 | P0-3：记入分层共识与方案 A（API 拒非法枚举）/ B（仅 REST 兼容改写）/ 折中；**未实施**，待选型 |
+| 2026-11-10 | P0-2：`18→DAILY_LIMIT`；errmsg 优先映射收口；版本 1.5.0（已移出开放清单） |
+| 2026-11-07 | 1.4.3 文档并入获客剧本 `customer-acquisition.md`；与痛点同时出现先追问 |
+| 2026-11-07 | 新增用户搜索 `user-search-cli.js`；版本 1.4.3；fans/type 不暴露 |
 | 2026-11-04 | P0-6：移除 SKILL/readme 中微信手机号，仅保留官网；不升版本 |
 | 2026-11-04 | P0-1 A+B：`14→PLAN_LIMIT`；文档双上限；版本 1.4.2 |
 | 2026-11-03 | 初版：对照 guaikei server REST/MCP/TODO 与本仓库 1.4.1 全量审查 |
