@@ -117,11 +117,12 @@ async function main() {
   let detailResult = null;
   let taskCost;
   try {
-    await detail.createDetailTask(tokenValue, url);
+    const taskId = await detail.createDetailTask(tokenValue, url);
     utils.printSuccess("获取作品详情任务创建成功, 正在获取详情中...");
     ({ results: detailResult, cost: taskCost } = await detail.getDetailTask(
       tokenValue,
       url,
+      taskId,
     ));
   } catch (error) {
     utils.printError(`获取作品详情失败: ${error.message}`);

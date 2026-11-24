@@ -27,6 +27,25 @@ function parseDecimalInteger(raw) {
   return n;
 }
 
+/**
+ * 布尔 flag：无 `=` 赋值 → true；有赋值须为 true/false/1/0（大小写不敏感）；其它值报错。
+ * @param {string|undefined|null} raw - undefined/null 表示仅出现 flag（如 `--save`）
+ * @param {string} flagName
+ * @returns {boolean}
+ */
+function parseBooleanFlagValue(raw, flagName) {
+  if (raw === undefined || raw === null) return true;
+  const s = String(raw).trim().toLowerCase();
+  if (s === "") {
+    throw new Error(`参数 ${flagName} 缺少有效布尔值（可用 true/false）`);
+  }
+  if (s === "true" || s === "1") return true;
+  if (s === "false" || s === "0") return false;
+  throw new Error(
+    `参数 ${flagName} 须为 true/false（或 1/0），收到: "${raw}"；省略该 flag 表示关闭`,
+  );
+}
+
 function readValueAfterFlag(args, index, flagName) {
   const next = args[index + 1];
   if (next === undefined) {
@@ -244,7 +263,7 @@ function parseArgs(args, schema) {
       seen.add(def.key);
 
       if (def.type === "boolean") {
-        result[def.key] = true;
+        result[def.key] = parseBooleanFlagValue(inlineValue, argName);
       } else if (inlineValue !== undefined) {
         if (inlineValue === "") {
           throw new Error(`参数 ${argName} 缺少有效值`);
@@ -311,4 +330,5 @@ module.exports = {
   readValueAfterFlag,
   buildHelp,
   parseDecimalInteger,
+  parseBooleanFlagValue,
 };

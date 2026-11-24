@@ -146,12 +146,17 @@ async function main() {
   let results = null;
   let taskCost;
   try {
-    await userSearch.createUserSearchTask(tokenValue, keyword, limit);
+    const taskId = await userSearch.createUserSearchTask(
+      tokenValue,
+      keyword,
+      limit,
+    );
     utils.printSuccess("用户搜索任务创建成功, 正在搜索中...");
     ({ results, cost: taskCost } = await userSearch.getUserSearchTask(
       tokenValue,
       keyword,
       limit,
+      taskId,
     ));
   } catch (error) {
     utils.printError(`用户搜索失败: ${error.message}`);

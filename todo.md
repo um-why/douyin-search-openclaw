@@ -3,7 +3,7 @@
 | 项 | 内容 |
 | --- | --- |
 | 审查日期 | 2026-11-03 |
-| 技能版本 | 1.5.1 |
+| 技能版本 | 1.5.2 |
 | 范围 | 本仓库 JS Skill（OpenClaw / Agent CLI）+ 对照后端 `D:\Git\guaikei\server`（REST + MCP） |
 | 用法 | 逐条处理后将 `[ ]` 改为 `[x]`，备注可写 PR / 提交 / 责任人 |
 | 建议顺序 | P0 → P1 → P2 → P3；Agent 可用性与契约稳定性优先于「加功能」 |
@@ -252,7 +252,8 @@ guaikei REST 异步任务（Create → 轮询 info / 或 MCP 内聚轮询）
   - 方向：list 类成功统一写 `total`（与 hot 对齐）
 
 - [ ] **P2-20 frontmatter 非标准字段 / metadata 形态**（Qwen 文档不一致 #9）  
-  - 现状：含 `version`/`enabled`/`keywords`/`category` 等；`metadata` 值为对象/数组，而 agentskills 要求 metadata 为字符串 map  
+  - 现状：仍含 `version`/`enabled`/`runtime`/`env_desc`/`tags`/`examples` 等；`metadata` 值为对象/数组，而 agentskills 要求 metadata 为字符串 map  
+  - 已做：删除重复的 `keywords` / `category`，`tags` 精简为能力向短表  
   - 影响：飞书 aily / 扣子 / 部分严格客户端可能拒收或告警  
   - 方向：出「标准 6 字段裁剪版」frontmatter 或发布脚本；OpenClaw 私有段保留在兼容形态说明里
 
@@ -467,6 +468,7 @@ Skill 再完美也掩盖不了：入队失败、Cron 错位、支付幂等、Tok
 
 | 日期 | 说明 |
 | --- | --- |
+| 2026-11-23 | frontmatter：删 `keywords`/`category`，精简 `tags`；版本 1.5.2 |
 | 2026-11-14 | 信封顶层可选 `cost`（透传 REST 取数花费估算）；不升版本；热榜除外 |
 | 2026-11-14 | P2-17：默认不落盘；`--save` / `GUAIKEI_ENABLE_LOG=1` → TEMP `douyin-guaikei/logs/`；已同步 wx/xhs/ks/tt；不升版本 |
 | 2026-11-14 | P1-10 方向 B：`--json-args` + `parseCliArgs`；不升版本；已同步 xhs/ks/tt/wx（他仓 changelog 记入当前版本、不升号）；C 未做 || 2026-11-14 | P1-10 方向 A：SKILL 双壳例 + faq 引号/绝对路径排障；版本 1.5.1；已同步 xhs 1.2.3 / ks 1.1.3 / tt 1.1.3 / wx 1.1.2 |

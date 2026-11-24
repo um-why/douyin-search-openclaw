@@ -4,7 +4,7 @@
 
 **一句话简介**：抖音公开数据只读技能，支持关键词搜索视频与图文、用户/达人搜索、博主作品与粉丝数据、单条作品详情、视频图文评论、实时热榜，并可按剧本做需求挖掘与公域获客（search→comment），全部以结构化 JSON 输出，不登录、不发布、不点赞、不评论。关键词：抖音搜索、抖音用户搜索、抖音热搜、抖音热榜、抖音评论、需求挖掘、获客、线索、竞品截流、痛点、播放量、作品详情、博主作品、对标账号、竞品分析、选题挖掘、舆情监控、douyin search、douyin user search、douyin hot、douyin detail、douyin comments。
 
-**维护状态**：持续更新中，当前版本 `1.5.1`，[更新日志](references/changelog.md)。Agent 执行卡见 [SKILL.md](SKILL.md)。
+**维护状态**：持续更新中，当前版本 `1.5.2`，[更新日志](references/changelog.md)。Agent 执行卡见 [SKILL.md](SKILL.md)。
 
 > **🔥核心优势**
 >
@@ -100,7 +100,7 @@ node src/douyin/hot-cli.js
     "limit": 20
   },
   "metadata": {
-    "skill_version": "1.5.1",
+    "skill_version": "1.5.2",
     "runtime_version": "22.x",
     "execution_time": 34210
   },
@@ -215,6 +215,7 @@ node src/douyin/hot-cli.js
 
 ### Schema 入口
 
+- 上游 Create/`id` 查询约定（非 CLI 字段）→ [references/contract.md](references/contract.md)
 - 输出信封 [output_envelope.schema.json](assets/output_envelope.schema.json)
 - 关键词搜索 [入参](assets/search_cli_req.schema.json) / [出参](assets/search_cli_resp.schema.json)
 - 用户搜索 [入参](assets/user_search_cli_req.schema.json) / [出参](assets/user_search_cli_resp.schema.json)

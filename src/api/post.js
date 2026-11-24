@@ -4,7 +4,7 @@
 const constants = require("../config/constants");
 const { SkillError } = require("../utils/errors");
 const { requestApi, pollTaskResult } = require("../utils/request");
-const { pickCost } = require("../utils/cost");
+const { pickCost, pickTaskId } = require("../utils/cost");
 
 function processPostResults(data) {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
@@ -28,7 +28,7 @@ function processPostResults(data) {
  * @param {string} token 技能令牌
  * @param {string} url 抖音博主主页URL
  * @param {number} limit 作品数量
- * @returns {Promise<Object>} 任务状态
+ * @returns {Promise<string|undefined>} Create 成功时的任务 id（uuid）
  * @throws {Error} API调用失败时抛出错误
  */
 async function createPostTask(token, url, limit) {
@@ -37,7 +37,7 @@ async function createPostTask(token, url, limit) {
     url: url,
     limit: limit,
   };
-  return await requestApi(
+  const response = await requestApi(
     "POST",
     "/api/douyin/post/url",
     params,
@@ -46,6 +46,7 @@ async function createPostTask(token, url, limit) {
     constants.CREATE_MAX_ATTEMPTS,
     "创建任务",
   );
+  return pickTaskId(response);
 }
 
 /**
@@ -53,14 +54,12 @@ async function createPostTask(token, url, limit) {
  * @param {string} token 技能令牌
  * @param {string} url 抖音博主主页URL
  * @param {number} limit 作品数量
+ * @param {string} [taskId] Create 返回的任务 id；有则查询只传 id（不带业务字段）
  * @returns {Promise<{ results: {post?: Array, user?: Object}|null, cost?: number }>}
  * @throws {Error} API调用失败时抛出错误
  */
-async function getPostTask(token, url, limit) {
-  const params = {
-    url: url,
-    limit: limit,
-  };
+async function getPostTask(token, url, limit, taskId) {
+  const params = taskId ? { id: taskId } : { url: url, limit: limit };
   const response = await pollTaskResult(
     "/api/douyin/post/info",
     params,

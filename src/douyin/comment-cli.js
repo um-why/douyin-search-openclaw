@@ -135,13 +135,14 @@ async function main() {
   let commentTask = null;
   let taskCost;
   try {
-    await comment.createCommentTask(tokenValue, url, limit);
+    const taskId = await comment.createCommentTask(tokenValue, url, limit);
     utils.printSuccess(`获取评论任务创建成功, 正在获取评论中...`);
 
     ({ results: commentTask, cost: taskCost } = await comment.getCommentTask(
       tokenValue,
       url,
       limit,
+      taskId,
     ));
   } catch (error) {
     utils.printError(`获取评论失败: ${error.message}`);
